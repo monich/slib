@@ -1,0 +1,12 @@
+Source: libslava
+Section: libs
+Priority: optional
+Maintainer: Slava Monich <slava@monich.com>
+Build-Depends: debhelper (>= 7)
+Standards-Version: 3.8.4
+
+Package: libslava-dev
+Section: libdevel
+Architecture: any
+Depends: ${misc:Depends}
+Description: General purpose utility library

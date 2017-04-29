@@ -1,0 +1,58 @@
+#!/bin/bash
+#
+# This script requires lcov to be installed
+#
+
+TESTS="\
+test_base32 \
+test_base64 \
+test_bitset \
+test_buf \
+test_fmem \
+test_hash \
+test_itr \
+test_math \
+test_md \
+test_mfp \
+test_mpm \
+test_parse \
+test_ring \
+test_stack \
+test_str \
+test_strbuf \
+test_queue \
+test_utf8 \
+test_vector"
+
+FLAVOR="release"
+
+pushd `dirname $0` > /dev/null
+COV_DIR="$PWD"
+pushd .. > /dev/null
+TEST_DIR="$PWD"
+pushd .. > /dev/null
+BASE_DIR="$PWD"
+popd > /dev/null
+popd > /dev/null
+popd > /dev/null
+
+SLIB_DIR="$BASE_DIR"
+
+make GCOV=1 -C "$BASE_DIR" clean $FLAVOR
+for t in $TESTS ; do
+    pushd "$TEST_DIR/$t"
+    make GCOV=1 -C "$TEST_DIR/$t" clean $FLAVOR || exit 1
+    build/$FLAVOR/$t || exit 1
+    popd
+done
+
+# LCOV 1.10 has branch coverage disabled per default
+LCOV_OPT="--rc lcov_branch_coverage=1"
+GENHTML_OPT="--branch-coverage"
+
+FULL_COV="$COV_DIR/full.gcov"
+SLIB_COV="$COV_DIR/slib.gcov"
+rm -f "$FULL_COV" "$SLIB_COV"
+lcov $LCOV_OPT -c -d "$SLIB_DIR/build/$FLAVOR" -b "$SLIB_DIR" -o "$FULL_COV" || exit 1
+lcov $LCOV_OPT -e "$FULL_COV" "$SLIB_DIR/src/*" -o "$SLIB_COV" || exit 1
+genhtml $GENHTML_OPT "$SLIB_COV" --output-directory "$COV_DIR/report" || exit 1

@@ -1,0 +1,314 @@
+Microsoft Developer Studio Workspace File, Format Version 6.00
+# WARNING: DO NOT EDIT OR DELETE THIS WORKSPACE FILE!
+
+###############################################################################
+
+Project: "slib"=..\slib.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "test_base32"=.\test_base32\test_base32.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name slib
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "test_base64"=.\test_base64\test_base64.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name slib
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "test_bitset"=.\test_bitset\test_bitset.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name slib
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "test_buf"=.\test_buf\test_buf.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name slib
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "test_fmem"=.\test_fmem\test_fmem.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name slib
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "test_hash"=.\test_hash\test_hash.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name slib
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "test_itr"=.\test_itr\test_itr.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name slib
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "test_math"=.\test_math\test_math.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name slib
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "test_md"=.\test_md\test_md.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name slib
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "test_mfp"=.\test_mfp\test_mfp.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name slib
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "test_mpm"=.\test_mpm\test_mpm.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name slib
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "test_parse"=.\test_parse\test_parse.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name slib
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "test_queue"=.\test_queue\test_queue.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name slib
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "test_ring"=.\test_ring\test_ring.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name slib
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "test_stack"=.\test_stack\test_stack.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name slib
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "test_str"=.\test_str\test_str.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name slib
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "test_strbuf"=.\test_strbuf\test_strbuf.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name slib
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "test_utf8"=.\test_utf8\test_utf8.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name slib
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "test_vector"=.\test_vector\test_vector.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name slib
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Global:
+
+Package=<5>
+{{{
+}}}
+
+Package=<3>
+{{{
+}}}
+
+###############################################################################
+

@@ -1,0 +1,29 @@
+slib
+====
+
+A general purpose library of C utilities. It grew from more or less
+random collection of C modules that I had been writing since the end
+of 1990s for many different projects. Most of the code falls into these
+two categories:
+
+1. Portable C utilities (arrays, lists, string buffers etc.)
+2. Platform-independent APIs for platform specific things (e.g. threads)
+
+Supported platforms are Windows, various flavours of Unix and Windows
+kernel (yes, kernel!). Other platforms were supported in the past
+(epoc, Linux kernel) and then dropped. Don't be surprised if you see
+some artefacts of that scattered around the code.
+
+slib was typically built as a static library. Just because I like it
+when the executables have as few external dependencies as possible.
+
+I'm not sure how useful it is these days, when there's glib and other
+similar libraries, much more functional than slib. But you never know.
+If nothing else, it can be used as a copy-paste material, in which case
+I would appreciate if you somehow acknowledge that fact. Obviously,
+there's no way of enforcing that, so I don't really care. Whatever.
+
+Enjoy!
+
+Slava Monich
+slava(at)monich.com

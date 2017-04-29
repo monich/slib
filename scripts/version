@@ -1,0 +1,36 @@
+#! /bin/bash
+#
+# $Id: version,v 1.1 2015/11/21 16:48:46 slava Exp $
+#
+# Extracts software version from include/s_ver.h and prints it
+# various formats.
+#
+
+version_file="include/s_ver.h"
+
+dir="$(dirname $0)"
+if [ "$dir" == "." ] ; then
+    top=".."
+else
+    top="$(dirname $dir)"
+fi
+
+vf="$top/$version_file"
+
+major() { grep -E "^ *#define +SLIB_VERSION_MAJOR +[0-9]+$" "$vf" | sed "s/  */ /g" | cut -d ' ' -f 3; }
+minor() { grep -E "^ *#define +SLIB_VERSION_MINOR +[0-9]+$" "$vf" | sed "s/  */ /g" | cut -d ' ' -f 3; }
+
+if [ -f "$vf" ] ; then
+    case $# in
+        0) echo `major`.`minor`; exit 0;;
+        1) case "$1" in
+           --major) major; exit 0;;
+           --minor) minor; exit 0;;
+           esac;;
+    esac
+    echo "Usage: `basename $0` [--major | --minor]"
+    exit 1
+else
+    echo "$vf: No such file"
+    exit 2
+fi

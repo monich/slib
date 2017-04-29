@@ -1,0 +1,10 @@
+prefix=/usr
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+Name: slib
+Description: General purpose utility library
+Version: [version]
+Requires: expat libcurl
+Libs: -L${libdir} -lslava -lpthread -lm
+Cflags: -I${includedir}/slib

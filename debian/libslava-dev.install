@@ -1,0 +1,2 @@
+build/slib.pc usr/lib/pkgconfig
+build/slibd.pc usr/lib/pkgconfig
