@@ -1,10 +1,10 @@
 # -*- Mode: makefile-gmake -*-
 #
-# $Id: Makefile,v 1.82 2016/11/09 21:28:39 slava Exp $
+# $Id: Makefile,v 1.83 2017/10/28 22:44:17 slava Exp $
 #
 # Makefile for libslava.a
 #
-# Copyright (C) 2000-2016 by Slava Monich
+# Copyright (C) 2000-2017 by Slava Monich
 #
 # Redistribution and use in source and binary forms, with or without 
 # modification, are permitted provided that the following conditions 
@@ -32,7 +32,7 @@
 # any official policies, either expressed or implied.
 #
 
-.PHONY: clean veryclean all debug release
+.PHONY: clean distclean all debug release
 
 CC = $(CROSS_COMPILE)gcc
 DEBUG_FLAGS = -g
@@ -257,13 +257,15 @@ release: $(RELEASE_BUILD_DIR) $(RELEASE_LIB)
 profile: $(PROFILE_BUILD_DIR) $(PROFILE_LIB)
 
 clean:
+	@$(MAKE) -C test clean
 	$(call RUN,rm -fr core *~ */*~ libslava*.a $(BUILD_DIR))
 	$(call RUN,rm -fr RPMS installroot documentation.list)
 	$(call RUN,rm -fr debian/tmp debian/libslava-dev)
 	$(call RUN,rm -f debian/files debian/*.substvars)
 	$(call RUN,rm -f debian/*.debhelper.log debian/*.debhelper debian/*~)
 
-veryclean: clean
+distclean: clean
+	rm -fr test/coverage/*.gcov test/coverage/report
 
 $(DEBUG_BUILD_DIR):
 	$(call RUN,mkdir -p $@)
@@ -359,6 +361,11 @@ $(INSTALL_PKGCONFIG_DIR):
 
 #
 # $Log: Makefile,v $
+# Revision 1.83  2017/10/28 22:44:17  slava
+# o replaced veryclean target with distclean which actually does something
+#   useful. Also, remove coverage reports on distclean, to reduce the size
+#   of the source tarballs produced by dpkg-buildpackage.
+#
 # Revision 1.82  2016/11/09 21:28:39  slava
 # Install debug library too (dpkg)
 #
