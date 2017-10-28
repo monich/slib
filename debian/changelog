@@ -1,3 +1,9 @@
+libslava (1.82) unstable; urgency=low
+
+  * Version 1.82
+
+ -- Slava Monich <slava@monich.com>  Sun, 29 Oct 2017 01:30:45 +0300
+
 libslava (1.77) unstable; urgency=low
 
   * Debian packaging
