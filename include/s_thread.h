@@ -1,7 +1,7 @@
 /*
- * $Id: s_thread.h,v 1.22 2015/08/16 16:07:30 slava Exp $
+ * $Id: s_thread.h,v 1.23 2017/10/28 22:27:19 slava Exp $
  *
- * Copyright (C) 2000-2015 by Slava Monich
+ * Copyright (C) 2000-2017 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -56,6 +56,8 @@ extern "C" {
 #  error "One of the platform specific macros must be defined"
 #endif
 
+#define THR_NONE ((ThrID)0)
+
 typedef struct _ThrKey * ThrKey;
 typedef void  (*ThrProc) P_((void * arg));
 typedef void  (*ThrClean) P_((void * value));
@@ -91,6 +93,9 @@ extern void * THREAD_GetValue P_((ThrKey key));
  * HISTORY:
  *
  * $Log: s_thread.h,v $
+ * Revision 1.23  2017/10/28 22:27:19  slava
+ * o added THR_NONE macro
+ *
  * Revision 1.22  2015/08/16 16:07:30  slava
  * o housekeeping
  *

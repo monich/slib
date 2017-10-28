@@ -1,7 +1,7 @@
 /*
- * $Id: test_hash.c,v 1.2 2016/10/02 22:55:21 slava Exp $
+ * $Id: test_hash.c,v 1.3 2017/10/28 22:27:19 slava Exp $
  *
- * Copyright (C) 2016 by Slava Monich
+ * Copyright (C) 2016-2017 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -530,7 +530,7 @@ test_hash_pool(
     const TestDesc* test)
 {
     TestStatus ret = TEST_OK;
-    ThrID tid = NULL;
+    ThrID tid = THR_NONE;
     if (!THREAD_Create(&tid, test_hash_pool_thread, &ret) ||
         !THREAD_Join(tid)) {
         ret = TEST_ERR;
