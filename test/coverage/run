@@ -26,15 +26,26 @@ test_vector"
 
 FLAVOR="release"
 
-pushd `dirname $0` > /dev/null
-COV_DIR="$PWD"
-pushd .. > /dev/null
-TEST_DIR="$PWD"
-pushd .. > /dev/null
-BASE_DIR="$PWD"
-popd > /dev/null
-popd > /dev/null
-popd > /dev/null
+function err() {
+    echo "*** ERROR!" $1
+    exit 1
+}
+
+# Chec required tools
+which lcov >> /dev/null || err "Please install lcov"
+which dirname >> /dev/null || err "Please install dirname"
+which realpath >> /dev/null || err "Please install realpath"
+
+# LCOV 1.10 has branch coverage disabled per default
+# Previous versions didn't have the --rc option
+if  [ ! -z "$(lcov --help | grep ' --rc ')" ] ; then
+    LCOV_OPT="--rc lcov_branch_coverage=1"
+    GENHTML_OPT="--branch-coverage"
+fi
+
+COV_DIR=$(realpath "$(dirname $0)")
+TEST_DIR=$(realpath "${COV_DIR}/..")
+BASE_DIR=$(realpath "${TEST_DIR}/..")
 
 SLIB_DIR="$BASE_DIR"
 
@@ -46,13 +57,9 @@ for t in $TESTS ; do
     popd
 done
 
-# LCOV 1.10 has branch coverage disabled per default
-LCOV_OPT="--rc lcov_branch_coverage=1"
-GENHTML_OPT="--branch-coverage"
-
 FULL_COV="$COV_DIR/full.gcov"
 SLIB_COV="$COV_DIR/slib.gcov"
 rm -f "$FULL_COV" "$SLIB_COV"
 lcov $LCOV_OPT -c -d "$SLIB_DIR/build/$FLAVOR" -b "$SLIB_DIR" -o "$FULL_COV" || exit 1
 lcov $LCOV_OPT -e "$FULL_COV" "$SLIB_DIR/src/*" -o "$SLIB_COV" || exit 1
-genhtml $GENHTML_OPT "$SLIB_COV" --output-directory "$COV_DIR/report" || exit 1
+genhtml $GENHTML_OPT "$SLIB_COV" -t "slib" --output-directory "$COV_DIR/report" || exit 1
