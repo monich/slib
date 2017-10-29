@@ -24,9 +24,15 @@ all: debug release
 # Directories
 #
 
-SRC_DIR = .
-LIB_DIR = ../..
-COMMON_DIR = ../common
+# Prefer to use absolute paths, that helps with generating coverage reports
+REALPATH := $(shell which realpath)
+define realpath
+    $(if $(REALPATH), $(shell realpath $(1)), echo $(1))
+endef
+
+SRC_DIR := $(realpath .)
+LIB_DIR := $(realpath ../..)
+COMMON_DIR := $(realpath ../common)
 BUILD_DIR = build
 DEBUG_BUILD_DIR = $(BUILD_DIR)/debug
 RELEASE_BUILD_DIR = $(BUILD_DIR)/release
