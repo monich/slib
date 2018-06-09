@@ -1,7 +1,7 @@
 /*
- * $Id: test_vector.c,v 1.2 2016/10/02 22:55:26 slava Exp $
+ * $Id: test_vector.c,v 1.3 2018/06/09 22:03:12 slava Exp $
  *
- * Copyright (C) 2016 by Slava Monich
+ * Copyright (C) 2016-2018 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -855,7 +855,7 @@ test_vector_sort(
 
     VECTOR_Add(v1, NULL);
     VECTOR_Add(v2, NULL);
-    for (i=0; i<=COUNT(strings); i++) {
+    for (i=0; i<COUNT(strings); i++) {
         VECTOR_Add(v1, STRING_Dup(strings[i]));
         VECTOR_Add(v2, STRING_Dup(strings[i]));
     }
