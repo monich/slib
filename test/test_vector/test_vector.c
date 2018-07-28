@@ -1,5 +1,5 @@
 /*
- * $Id: test_vector.c,v 1.3 2018/06/09 22:03:12 slava Exp $
+ * $Id: test_vector.c,v 1.4 2018/07/28 16:22:20 slava Exp $
  *
  * Copyright (C) 2016-2018 by Slava Monich
  *
@@ -56,7 +56,16 @@ test_vector_strcmp_r(
     VElementC e1,
     VElementC e2)
 {
-    return -vectorCompareStringNoCase(e1, e2);
+    return vectorCompareString(e2, e1);
+}
+
+static
+int
+test_vector_strcasecmp_r(
+    VElementC e1,
+    VElementC e2)
+{
+    return vectorCompareStringNoCase(e2, e1);
 }
 
 static
@@ -876,10 +885,17 @@ test_vector_sort(
         ret = TEST_ERR;
     }
 
-    VECTOR_Reverse(v1);
-    VECTOR_Sort(v2, test_vector_strcmp_r);
+    VECTOR_Swap(v1, 0, VECTOR_Size(v1)-1);
+    if (!VECTOR_Sort(v1, test_vector_strcmp_r) ||
+        !VECTOR_Sort(v1, vectorCompareString) ||
+        !VECTOR_Equals(v1, v2) ||
+        !VECTOR_Equals(v2, v1)) {
+        ret = TEST_ERR;
+    }
 
-    if (!VECTOR_Equals(v1, v2) ||
+    VECTOR_Reverse(v1);
+    if (!VECTOR_Sort(v2, test_vector_strcasecmp_r) ||
+        !VECTOR_Equals(v1, v2) ||
         !VECTOR_Equals(v2, v1)) {
         ret = TEST_ERR;
     }
