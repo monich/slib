@@ -1,10 +1,10 @@
 # -*- Mode: makefile-gmake -*-
 #
-# $Id: Makefile,v 1.83 2017/10/28 22:44:17 slava Exp $
+# $Id: Makefile,v 1.84 2018/07/28 15:39:24 slava Exp $
 #
 # Makefile for libslava.a
 #
-# Copyright (C) 2000-2017 by Slava Monich
+# Copyright (C) 2000-2018 by Slava Monich
 #
 # Redistribution and use in source and binary forms, with or without 
 # modification, are permitted provided that the following conditions 
@@ -32,12 +32,18 @@
 # any official policies, either expressed or implied.
 #
 
-.PHONY: clean distclean all debug release
+.PHONY: clean distclean all debug release profile coverage
+
+DEBUG_NAME = libslavad
+RELEASE_NAME = libslava
+PROFILE_NAME = libslavap
+COVERAGE_NAME = libslavac
 
 CC = $(CROSS_COMPILE)gcc
 DEBUG_FLAGS = -g
 RELEASE_FLAGS = -O2
-PROFILE_FLAGS = -pg
+PROFILE_FLAGS = $(RELEASE_FLAGS) -pg
+COVERAGE_FLAGS = $(RELEASE_FLAGS) --coverage
 
 INCLUDES = -I./include -I./src -I../curl/include -I../expat/lib
 DEFINES = -D_REENTRANT -D_HAVE_CURL -D_HAVE_EXPAT
@@ -61,7 +67,8 @@ endif
 
 DEBUG_CFLAGS = $(DEBUG_FLAGS) $(CFLAGS) $(CPPFLAGS) $(DEBUG_DEFINES)
 RELEASE_CFLAGS = $(RELEASE_FLAGS) $(CFLAGS) $(CPPFLAGS)
-PROFILE_CFLAGS = $(RELEASE_FLAGS) $(PROFILE_FLAGS) $(CFLAGS) $(CPPFLAGS)
+PROFILE_CFLAGS = $(PROFILE_FLAGS) $(CFLAGS) $(CPPFLAGS)
+COVERAGE_CFLAGS = $(COVERAGE_FLAGS) $(CFLAGS) $(CPPFLAGS)
 
 #
 # Macros to quietly run commands
@@ -69,11 +76,20 @@ PROFILE_CFLAGS = $(RELEASE_FLAGS) $(PROFILE_FLAGS) $(CFLAGS) $(CPPFLAGS)
 
 RUN = $(if $(V),$1,$(if $(2),@echo $2 && $1, @$1))
 
+RUN_MKDIR = $(call RUN,mkdir -p $1,"  MKDIR $1")
+RUN_AR = $(call RUN,$(AR) $(ARFLAGS) $1 $2,"  AR    $1")
 RUN_CC = $(call RUN,$(call CC_CMD,$1,$2,$3),"  CC    $3")
 CC_CMD = $(CC) -c $1 -MT$3 -MF$(3:%.o=%.d) $2 -o $3
 CC_DEBUG = $(call RUN_CC,$(DEBUG_CFLAGS),$1,$2)
 CC_RELEASE = $(call RUN_CC,$(RELEASE_CFLAGS),$1,$2)
 CC_PROFILE = $(call RUN_CC,$(PROFILE_CFLAGS),$1,$2)
+CC_COVERAGE = $(call RUN_CC,$(COVERAGE_CFLAGS),$1,$2)
+
+ifdef V
+SUBMAKE = make V=$(V)
+else
+SUBMAKE = make --no-print-directory
+endif
 
 #
 # Library version
@@ -107,9 +123,10 @@ endif
 ifneq ($(ARCH),)
 
 BUILD_DIR = build/$(ARCH)
-RELEASE_LIB = libslava-$(ARCH).a
-PROFILE_LIB = libslavap-$(ARCH).a
-DEBUG_LIB = libslavad-$(ARCH).a
+DEBUG_LIB = $(DEBUG_NAME)-$(ARCH).a
+RELEASE_LIB = $(RELEASE_NAME)-$(ARCH).a
+PROFILE_LIB = $(PROFILE_NAME)-$(ARCH).a
+COVERAGE_LIB = $(COVERAGE_NAME)-$(ARCH).a
 
 ifeq ($(OS),Darwin)
 CFLAGS += -arch $(ARCH)
@@ -118,9 +135,10 @@ endif # Darwin
 else # ARCH
 
 BUILD_DIR = build
-RELEASE_LIB = libslava.a
-PROFILE_LIB = libslavap.a
-DEBUG_LIB = libslavad.a
+DEBUG_LIB = $(DEBUG_NAME).a
+RELEASE_LIB = $(RELEASE_NAME).a
+PROFILE_LIB = $(PROFILE_NAME).a
+COVERAGE_LIB = $(COVERAGE_NAME).a
 
 # Support for Mac OS X universal binaries
 ifeq ($(OS),Darwin)
@@ -128,49 +146,60 @@ LIPO = lipo
 ifeq ($(shell [ $(OS_RELEASE) -ge 8 ] ; echo $$?),0)
 # Tiger of later
 CFLAGS  += -arch i386
-RELEASE_LIB_I386 = libslava-i386.a
-PROFILE_LIB_I386 = libslavap-i386.a
-DEBUG_LIB_I386 = libslavad-i386.a
+DEBUG_LIB_I386 = $(DEBUG_NAME)-i386.a
+RELEASE_LIB_I386 = $(RELEASE_NAME)-i386.a
+PROFILE_LIB_I386 = $(PROFILE_NAME)-i386.a
+COVERAGE_LIB_I386 = $(COVERAGE_NAME)-i386.a
+DEBUG_LIBS += $(DEBUG_LIB_I386)
 RELEASE_LIBS += $(RELEASE_LIB_I386)
 PROFILE_LIBS += $(PROFILE_LIB_I386)
-DEBUG_LIBS += $(DEBUG_LIB_I386)
+COVERAGE_LIBS += $(COVERAGE_LIB_I386)
+$(DEBUG_LIB_I386): debug_lib_i386
 $(RELEASE_LIB_I386): release_lib_i386
 $(PROFILE_LIB_I386): profile_lib_i386
-$(DEBUG_LIB_I386): debug_lib_i386
+$(COVERAGE_LIB_I386): coverage_lib_i386
 ifeq ($(shell [ $(OS_RELEASE) -le 10 ] ; echo $$?),0)
 # Support for PowerPC was dropped in Lion
 CFLAGS  += -arch ppc
-RELEASE_LIB_PPC = libslava-ppc.a
-PROFILE_LIB_PPC = libslavap-ppc.a
-DEBUG_LIB_PPC = libslavad-ppc.a
+DEBUG_LIB_PPC = $(DEBUG_NAME)-ppc.a
+RELEASE_LIB_PPC = $(RELEASE_NAME)-ppc.a
+PROFILE_LIB_PPC = $(PROFILE_NAME)-ppc.a
+COVERAGE_LIB_PPC = $(COVERAGE_NAME)-ppc.a
+DEBUG_LIBS += $(DEBUG_LIB_PPC)
 RELEASE_LIBS += $(RELEASE_LIB_PPC)
 PROFILE_LIBS += $(PROFILE_LIB_PPC)
-DEBUG_LIBS += $(DEBUG_LIB_PPC)
+COVERAGE_LIBS += $(COVERAGE_LIB_PPC)
+$(DEBUG_LIB_PPC): debug_lib_ppc
 $(RELEASE_LIB_PPC): release_lib_ppc
 $(PROFILE_LIB_PPC): profile_lib_ppc
-$(DEBUG_LIB_PPC): debug_lib_ppc
+$(COVERAGE_LIB_PPC): coverage_lib_ppc
 endif
 ifeq ($(shell [ $(OS_RELEASE) -ge 10 ] ; echo $$?),0)
 # Snow Leopard or later
 CFLAGS  += -arch x86_64
-RELEASE_LIB_X86_64 = libslava-x86_64.a
-PROFILE_LIB_X86_64 = libslavap-x86_64.a
-DEBUG_LIB_X86_64 = libslavad-x86_64.a
+DEBUG_LIB_X86_64 = $(DEBUG_NAME)-x86_64.a
+RELEASE_LIB_X86_64 = $(RELEASE_NAME)-x86_64.a
+PROFILE_LIB_X86_64 = $(PROFILE_NAME)-x86_64.a
+COVERAGE_LIB_X86_64 = $(COVERAGE_NAME)-x86_64.a
+DEBUG_LIBS += $(DEBUG_LIB_X86_64)
 RELEASE_LIBS += $(RELEASE_LIB_X86_64)
 PROFILE_LIBS += $(PROFILE_LIB_X86_64)
-DEBUG_LIBS += $(DEBUG_LIB_X86_64)
+COVERAGE_LIBS += $(COVERAGE_LIB_X86_64)
+$(DEBUG_LIB_X86_64): debug_lib_x86_64
 $(RELEASE_LIB_X86_64): release_lib_x86_64
 $(PROFILE_LIB_X86_64): profile_lib_x86_64
-$(DEBUG_LIB_X86_64): debug_lib_x86_64
+$(COVERAGE_LIB_X86_64): coverage_lib_x86_64
 endif # Darwin 10.x
 endif # Darwin 8.x
 
-release_lib_%:
-	@$(MAKE) V=$(V) ARCH=$* release
-profile_lib_%:
-	@$(MAKE) V=$(V) ARCH=$* profile
 debug_lib_%:
-	@$(MAKE) V=$(V) ARCH=$* debug
+	@$(SUBMAKE) ARCH=$* debug
+release_lib_%:
+	@$(SUBMAKE) ARCH=$* release
+profile_lib_%:
+	@$(SUBMAKE) ARCH=$* profile
+coverage_lib_%:
+	@$(SUBMAKE) ARCH=$* coverage
 
 endif # Darwin
 
@@ -205,6 +234,7 @@ SRC1_DIR = ./src/unix
 DEBUG_BUILD_DIR = $(BUILD_DIR)/debug
 RELEASE_BUILD_DIR = $(BUILD_DIR)/release
 PROFILE_BUILD_DIR = $(RELEASE_BUILD_DIR)/profile
+COVERAGE_BUILD_DIR = $(BUILD_DIR)/coverage
 
 #
 # Files
@@ -224,6 +254,9 @@ RELEASE_OBJS = \
 PROFILE_OBJS = \
   $(SRC:%.c=$(PROFILE_BUILD_DIR)/%.o) \
   $(SRC1:%.c=$(PROFILE_BUILD_DIR)/%.o)
+COVERAGE_OBJS = \
+  $(SRC:%.c=$(COVERAGE_BUILD_DIR)/%.o) \
+  $(SRC1:%.c=$(COVERAGE_BUILD_DIR)/%.o)
 
 #
 # Dependencies
@@ -232,7 +265,8 @@ PROFILE_OBJS = \
 DEPS = \
   $(DEBUG_OBJS:%.o=%.d) \
   $(RELEASE_OBJS:%.o=%.d) \
-  $(PROFILE_OBJS:%.o=%.d)
+  $(PROFILE_OBJS:%.o=%.d) \
+  $(COVERAGE_OBJS:%.o=%.d)
 
 ifneq ($(MAKECMDGOALS),clean)
 ifneq ($(strip $(DEPS)),)
@@ -241,9 +275,10 @@ endif
 endif
 
 ifeq (3.81,$(firstword $(sort $(MAKE_VERSION) 3.81)))
-$(DEBUG_OBJS):   | $(DEBUG_BUILD_DIR)
-$(RELEASE_OBJS): | $(RELEASE_BUILD_DIR)
-$(PROFILE_OBJS): | $(PROFILE_BUILD_DIR)
+$(DEBUG_OBJS):    | $(DEBUG_BUILD_DIR)
+$(RELEASE_OBJS):  | $(RELEASE_BUILD_DIR)
+$(PROFILE_OBJS):  | $(PROFILE_BUILD_DIR)
+$(COVERAGE_OBJS): | $(COVERAGE_BUILD_DIR)
 endif
 
 #
@@ -256,8 +291,10 @@ release: $(RELEASE_BUILD_DIR) $(RELEASE_LIB)
 
 profile: $(PROFILE_BUILD_DIR) $(PROFILE_LIB)
 
+coverage: $(COVERAGE_BUILD_DIR) $(COVERAGE_BUILD_DIR)/$(COVERAGE_LIB)
+
 clean:
-	@$(MAKE) -C test clean
+	@$(SUBMAKE) -C test clean
 	$(call RUN,rm -fr core *~ */*~ libslava*.a $(BUILD_DIR))
 	$(call RUN,rm -fr RPMS installroot documentation.list)
 	$(call RUN,rm -fr debian/tmp debian/libslava-dev)
@@ -268,17 +305,20 @@ distclean: clean
 	rm -fr test/coverage/*.gcov test/coverage/report
 
 $(DEBUG_BUILD_DIR):
-	$(call RUN,mkdir -p $@)
+	$(call RUN_MKDIR,$@)
 
 $(RELEASE_BUILD_DIR):
-	$(call RUN,mkdir -p $@)
+	$(call RUN_MKDIR,$@)
 
 $(PROFILE_BUILD_DIR):
-	$(call RUN,mkdir -p $@)
+	$(call RUN_MKDIR,$@)
+
+$(COVERAGE_BUILD_DIR):
+	$(call RUN_MKDIR,$@)
 
 ifeq ($(DEBUG_LIBS),)
 $(DEBUG_LIB): $(DEBUG_OBJS)
-	$(call RUN,$(AR) $(ARFLAGS) $@ $?,"  AR    $@")
+	$(call RUN_AR,$@,$?)
 	$(call RUN,ranlib  $@)
 else
 $(DEBUG_LIB): $(DEBUG_LIBS)
@@ -287,7 +327,7 @@ endif
 
 ifeq ($(RELEASE_LIBS),)
 $(RELEASE_LIB): $(RELEASE_OBJS)
-	$(call RUN,$(AR) $(ARFLAGS) $@ $?,"  AR    $@")
+	$(call RUN_AR,$@,$?)
 	$(call RUN,ranlib  $@)
 else
 $(RELEASE_LIB): $(RELEASE_LIBS)
@@ -296,10 +336,19 @@ endif
 
 ifeq ($(PROFILE_LIBS),)
 $(PROFILE_LIB): $(PROFILE_OBJS)
-	$(call RUN,$(AR) $(ARFLAGS) $@ $?,"  AR    $@")
+	$(call RUN_AR,$@,$?)
 	$(call RUN,ranlib  $@)
 else
 $(PROFILE_LIB): $(PROFILE_LIBS)
+	$(call RUN,$(AR) $^ -create -output $@,"  AR    $@")
+endif
+
+ifeq ($(COVERAGE_LIBS),)
+$(COVERAGE_BUILD_DIR)/$(COVERAGE_LIB): $(COVERAGE_OBJS)
+	$(call RUN_AR,$@,$?)
+	$(call RUN,ranlib  $@)
+else
+$(COVERAGE_BUILD_DIR)/$(COVERAGE_LIB): $(COVERAGE_LIBS)
 	$(call RUN,$(AR) $^ -create -output $@,"  AR    $@")
 endif
 
@@ -327,6 +376,12 @@ $(PROFILE_BUILD_DIR)/%.o : $(SRC_DIR)/%.c
 
 $(PROFILE_BUILD_DIR)/%.o : $(SRC1_DIR)/%.c
 	$(call CC_PROFILE,$<,$@)
+
+$(COVERAGE_BUILD_DIR)/%.o : $(SRC_DIR)/%.c
+	$(call CC_COVERAGE,$<,$@)
+
+$(COVERAGE_BUILD_DIR)/%.o : $(SRC1_DIR)/%.c
+	$(call CC_COVERAGE,$<,$@)
 
 #
 # Install
@@ -361,6 +416,11 @@ $(INSTALL_PKGCONFIG_DIR):
 
 #
 # $Log: Makefile,v $
+# Revision 1.84  2018/07/28 15:39:24  slava
+# o added separate coverage target. It's not very convenient when the
+#   same object files can be built with different flags. Better keep
+#   each build flavor in a directory of its own, helps to avoid mixups.
+#
 # Revision 1.83  2017/10/28 22:44:17  slava
 # o replaced veryclean target with distclean which actually does something
 #   useful. Also, remove coverage reports on distclean, to reduce the size
