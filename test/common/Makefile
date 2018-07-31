@@ -1,6 +1,7 @@
 # -*- Mode: makefile-gmake -*-
 
-.PHONY: clean cleaner all debug release coverage test_banner test valgrind
+.PHONY: clean cleaner all debug release test_banner test valgrind
+.PHONY: coverage test-coverage
 .PHONY: slib-debug slib-release slib-coverage
 
 #
@@ -159,7 +160,10 @@ test_banner:
 	@echo "===========" $(EXE) "=========== "
 
 test: test_banner debug
-	@$(DEBUG_EXE)
+	$(call RUN,$(DEBUG_EXE),)
+
+test-coverage: test_banner coverage
+	$(call RUN,$(COVERAGE_EXE),)
 
 valgrind: test_banner debug
 	$(call RUN,G_DEBUG=gc-friendly G_SLICE=always-malloc valgrind --tool=memcheck --leak-check=full --show-possibly-lost=yes $(DEBUG_EXE),)
