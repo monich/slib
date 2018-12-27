@@ -1,5 +1,5 @@
 /*
- * $Id: test_buf.c,v 1.3 2018/12/27 19:56:25 slava Exp $
+ * $Id: test_buf.c,v 1.4 2018/12/27 23:31:08 slava Exp $
  *
  * Copyright (C) 2016-2018 by Slava Monich
  *
@@ -138,6 +138,7 @@ test_buf_basic1(
     TEST_ASSERT(BUFFER_GetI8(buf, &out8));
     TEST_ASSERT(out8 == in8);
     TEST_ASSERT(BUFFER_PushBack(buf, NULL, 1));
+    TEST_ASSERT(BUFFER_PushBack(buf, NULL, 0));
     TEST_ASSERT(BUFFER_GetI8(buf, NULL));
     TEST_ASSERT(BUFFER_GetI16(buf, &out16));
     TEST_ASSERT(out16 == in16);
@@ -235,7 +236,8 @@ test_buf_trim1(
     TEST_ASSERT(!BUFFER_EnsureCapacity(buf, BUFFER_Size(buf)+1, False));
 
     /* Will fail to allocate more than maxsiz */
-    TEST_ASSERT(!BUFFER_EnsureCapacity(buf, size+1, False));
+    TEST_ASSERT(!BUFFER_EnsureCapacity(buf, size + 1, False));
+    TEST_ASSERT(BUFFER_EnsureCapacity(buf, size + 1, True));
     TEST_ASSERT(BUFFER_EnsureCapacity(buf, size + 1, True));
 
     TEST_ASSERT(BUFFER_PutI8(buf, 0x01));
@@ -598,10 +600,9 @@ test_buf_push1(
     const size_t size = sizeof(d);
 
     buf->maxsiz = size;
-    TEST_ASSERT(BUFFER_Put(buf, d, size, False) == size);
-    TEST_ASSERT(BUFFER_Skip(buf, 2) == 2);
-    TEST_ASSERT(BUFFER_PushBack(buf, NULL, 2));
-    TEST_ASSERT(!BUFFER_PushBack(buf, NULL, 2));
+    TEST_ASSERT(BUFFER_Put(buf, d + 1, size - 1, False) == (size - 1));
+    TEST_ASSERT(BUFFER_PushBack(buf, d, 1));
+    TEST_ASSERT(!BUFFER_PushBack(buf, NULL, 1));
 
     data = BUFFER_Access(buf);
     TEST_ASSERT(data);
