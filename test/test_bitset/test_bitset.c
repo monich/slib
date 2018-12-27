@@ -1,7 +1,7 @@
 /*
- * $Id: test_bitset.c,v 1.1 2016/09/26 16:09:14 slava Exp $
+ * $Id: test_bitset.c,v 1.2 2018/12/27 18:17:29 slava Exp $
  *
- * Copyright (C) 2016 by Slava Monich
+ * Copyright (C) 2016-2018 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -38,7 +38,6 @@ TestStatus
 test_bitset_alloc(
     const TestDesc* test)
 {
-    TestStatus ret = TEST_OK;
     BitSet* bs = BITSET_Create();
     BitSet* bs1;
     int i, alloc;
@@ -48,48 +47,30 @@ test_bitset_alloc(
 
     /* Simulate allocation failures */
     testMem.failAt = testMem.allocCount;
-    if (BITSET_Create()) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!BITSET_Create());
 
     testMem.failAt = testMem.allocCount;
-    if (BITSET_Set(bs, 255)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!BITSET_Set(bs, 255));
 
     testMem.failAt = testMem.allocCount;
-    if (BITSET_Clone(bs)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!BITSET_Clone(bs));
 
     /* Clone of an empty bitset requires only one allocation */
     testMem.failAt = testMem.allocCount + 1;
     bs1 = BITSET_Clone(bs);
-    if (!bs1) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(bs1);
     BITSET_Delete(bs1);
 
     /* No memory is required to store zero bits */
     testMem.failAt = testMem.allocCount;
-    if (!BITSET_Alloc(bs, 0) ||
-        !BITSET_Alloc(bs, 1)) {
-        ret = TEST_ERR;
-    }
-
-    /* Negative number of bits is invalid */
-    if (BITSET_Alloc(bs, -1) ||
-        BITSET_Set(bs, -1)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(BITSET_Alloc(bs, 0));
+    TEST_ASSERT(BITSET_Alloc(bs, 1));
 
     testMem.failAt = -1;
     BITSET_Set(bs, 255);
-    for (i=0; i<2; i++) {
+    for (i = 0; i < 2; i++) {
         testMem.failAt = testMem.allocCount + i;
-        if (BITSET_Clone(bs)) {
-            ret = TEST_ERR;
-        }
+        TEST_ASSERT(!BITSET_Clone(bs));
     }
 
     BITSET_Xor(bs, bs);
@@ -97,20 +78,16 @@ test_bitset_alloc(
     testMem.failAt = testMem.allocCount;
     alloc = bs->alloc;
     BITSET_Trim(bs);
-    if (bs->alloc != alloc) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(bs->alloc == alloc);
 
     bs1 = BITSET_Create();
     BITSET_Set(bs1, 100);
     BITSET_Xor(bs, bs);
     BITSET_Trim(bs);
     testMem.failAt = testMem.allocCount;
-    if (BITSET_Or(bs, bs1) ||
-        BITSET_Length(bs) ||
-        BITSET_Size(bs)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!BITSET_Or(bs, bs1));
+    TEST_ASSERT(!BITSET_Length(bs));
+    TEST_ASSERT(!BITSET_Size(bs));
     BITSET_Delete(bs1);
 
     bs1 = BITSET_Create();
@@ -118,16 +95,14 @@ test_bitset_alloc(
     BITSET_Xor(bs, bs);
     BITSET_Trim(bs);
     testMem.failAt = testMem.allocCount;
-    if (BITSET_Xor(bs, bs1) ||
-        BITSET_Length(bs) ||
-        BITSET_Size(bs)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!BITSET_Xor(bs, bs1));
+    TEST_ASSERT(!BITSET_Length(bs));
+    TEST_ASSERT(!BITSET_Size(bs));
     BITSET_Delete(bs1);
 
     testMem.failAt = -1;
     BITSET_Delete(bs);
-    return ret;
+    return TEST_OK;
 }
 
 static
@@ -135,94 +110,79 @@ TestStatus
 test_bitset_basic(
     const TestDesc* test)
 {
-    TestStatus ret = TEST_OK;
     BitSet* bs = BITSET_Create();
     BitSet* bs1 = BITSET_Create();
 
-    if (BITSET_Get(bs, 255) ||
-        BITSET_Get(bs, -1) ||
-        BITSET_Length(bs) ||
-        BITSET_Size(bs) ||
-        !BITSET_Equal(bs, bs1) ||
-        BITSET_HashCode(bs) != 1234) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!BITSET_Alloc(bs, -1));
+    TEST_ASSERT(!BITSET_Get(bs, 255));
+    TEST_ASSERT(!BITSET_Get(bs, -1));
+    TEST_ASSERT(!BITSET_Set(bs, -1));
+    TEST_ASSERT(!BITSET_Length(bs));
+    TEST_ASSERT(!BITSET_Size(bs));
+    TEST_ASSERT(BITSET_Equal(bs, bs1));
+    TEST_ASSERT(BITSET_HashCode(bs) == 1234);
 
-    BITSET_Set(bs, 1);
-    if (!BITSET_Get(bs, 1) ||
-        BITSET_BitCnt(bs) != 1 ||
-        BITSET_Length(bs) != 2 ||
-        BITSET_HashCode(bs) != 1232) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(BITSET_Set(bs, 1));
+    TEST_ASSERT(BITSET_Get(bs, 1));
+    TEST_ASSERT(BITSET_BitCnt(bs) == 1);
+    TEST_ASSERT(BITSET_Length(bs) == 2);
+    TEST_ASSERT(BITSET_HashCode(bs) == 1232);
 
-    BITSET_Set(bs, 255);
-    if (!BITSET_Get(bs, 255) ||
-        BITSET_BitCnt(bs) != 2 ||
-        BITSET_Length(bs) != 256 ||
-        BITSET_Size(bs) != 256 ||
-        BITSET_HashCode(bs) != 1232) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(BITSET_Set(bs, 255));
+    TEST_ASSERT(BITSET_Get(bs, 255));
+    TEST_ASSERT(BITSET_BitCnt(bs) == 2);
+    TEST_ASSERT(BITSET_Length(bs) == 256);
+    TEST_ASSERT(BITSET_Size(bs) == 256);
+    TEST_ASSERT(BITSET_HashCode(bs) == 1232);
 
     BITSET_Delete(bs1);
     bs1 = BITSET_Clone(bs);
-    if (!BITSET_Equal(bs, bs) ||
-        !BITSET_Equal(bs, bs1) ||
-        !BITSET_Equal(bs1, bs) ||
-        !BITSET_Get(bs1, 255) ||
-        !BITSET_Get(bs1, 1) ||
-        BITSET_BitCnt(bs1) != 2 ||
-        BITSET_Length(bs1) != 256) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(bs1);
+    TEST_ASSERT(BITSET_Equal(bs, bs));
+    TEST_ASSERT(BITSET_Equal(bs, bs1));
+    TEST_ASSERT(BITSET_Equal(bs1, bs));
+    TEST_ASSERT(BITSET_Get(bs1, 255));
+    TEST_ASSERT(BITSET_Get(bs1, 1));
+    TEST_ASSERT(BITSET_BitCnt(bs1) == BITSET_BitCnt(bs));
+    TEST_ASSERT(BITSET_Length(bs1) == BITSET_Length(bs));
+    TEST_ASSERT(BITSET_HashCode(bs1) == BITSET_HashCode(bs));
 
     BITSET_Clear(bs, -1);
     BITSET_Clear(bs, 1024);
     BITSET_Clear(bs, 255);
-    if (BITSET_Get(bs, 255) ||
-        !BITSET_Get(bs, 1) ||
-        BITSET_BitCnt(bs) != 1 ||
-        BITSET_Length(bs) != 2) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!BITSET_Get(bs, 255));
+    TEST_ASSERT(BITSET_Get(bs, 1));
+    TEST_ASSERT(BITSET_BitCnt(bs) == 1);
+    TEST_ASSERT(BITSET_Length(bs) == 2);
 
     BITSET_Trim(bs);
-    if (BITSET_Equal(bs, bs1) ||
-        BITSET_Equal(bs1, bs) ||
-        !BITSET_Get(bs, 1) ||
-        BITSET_BitCnt(bs) != 1 ||
-        BITSET_Length(bs) != 2) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!BITSET_Equal(bs, bs1));
+    TEST_ASSERT(!BITSET_Equal(bs1, bs));
+    TEST_ASSERT(BITSET_Get(bs, 1));
+    TEST_ASSERT(BITSET_BitCnt(bs) == 1);
+    TEST_ASSERT(BITSET_Length(bs) == 2);
 
     BITSET_ClearAll(bs);
-    if (BITSET_Get(bs, 1) ||
-        BITSET_Length(bs) ||
-        BITSET_Size(bs)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!BITSET_Get(bs, 1));
+    TEST_ASSERT(!BITSET_Length(bs));
+    TEST_ASSERT(!BITSET_Size(bs));
 
-    BITSET_Set(bs, 1);
-    BITSET_Set(bs, 2);
+    TEST_ASSERT(BITSET_Set(bs, 1));
+    TEST_ASSERT(BITSET_Set(bs, 2));
     BITSET_Clear(bs, 2);
-    if (!BITSET_Get(bs, 1) ||
-        BITSET_Get(bs, 2)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(BITSET_Get(bs, 1));
+    TEST_ASSERT(!BITSET_Get(bs, 2));
 
     BITSET_ClearAll(bs);
-    BITSET_Set(bs, 100);
-    BITSET_Alloc(bs, 200);
-    BITSET_Copy(bs1, bs);
-    if (!BITSET_Equal(bs1, bs) ||
-        !BITSET_Equal(bs, bs1)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(BITSET_Set(bs, 100));
+    TEST_ASSERT(BITSET_Alloc(bs, 200));
+    TEST_ASSERT(BITSET_Copy(bs1, bs));
+    TEST_ASSERT(BITSET_Equal(bs1, bs));
+    TEST_ASSERT(BITSET_Equal(bs, bs1));
 
     BITSET_Delete(bs1);
     BITSET_Delete(bs);
-    return ret;
+    return TEST_OK;
 }
 
 static
@@ -230,31 +190,24 @@ TestStatus
 test_bitset_equal(
     const TestDesc* test)
 {
-    TestStatus ret = TEST_OK;
     BitSet* bs1 = BITSET_Create();
     BitSet* bs2 = BITSET_Create();
 
-    if (!BITSET_Equal(bs1, bs2) ||
-        !BITSET_Equal(bs1, bs2)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(BITSET_Equal(bs1, bs2));
+    TEST_ASSERT(BITSET_Equal(bs1, bs2));
 
-    BITSET_Set(bs1, 1);
-    BITSET_Set(bs2, 2);
-    if (BITSET_Equal(bs1, bs2) ||
-        BITSET_Equal(bs1, bs2)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(BITSET_Set(bs1, 1));
+    TEST_ASSERT(BITSET_Set(bs2, 2));
+    TEST_ASSERT(!BITSET_Equal(bs1, bs2));
+    TEST_ASSERT(!BITSET_Equal(bs1, bs2));
 
-    BITSET_Set(bs2, 1);
-    BITSET_Set(bs1, 2);
-    if (!BITSET_Equal(bs1, bs2)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(BITSET_Set(bs2, 1));
+    TEST_ASSERT(BITSET_Set(bs1, 2));
+    TEST_ASSERT(BITSET_Equal(bs1, bs2));
 
     BITSET_Delete(bs1);
     BITSET_Delete(bs2);
-    return ret;
+    return TEST_OK;
 }
 
 static
@@ -262,42 +215,33 @@ TestStatus
 test_bitset_trim(
     const TestDesc* test)
 {
-    TestStatus ret = TEST_OK;
     BitSet* bs1 = BITSET_Create();
     BitSet* bs2 = BITSET_Create();
 
-    BITSET_Set(bs1, 1);
-    BITSET_Set(bs1, 100);
-    BITSET_Copy(bs2, bs1);
-    BITSET_Alloc(bs2, 200);
+    TEST_ASSERT(BITSET_Set(bs1, 1));
+    TEST_ASSERT(BITSET_Set(bs1, 100));
+    TEST_ASSERT(BITSET_Copy(bs2, bs1));
+    TEST_ASSERT(BITSET_Alloc(bs2, 200));
 
-    if (!BITSET_Equal(bs1, bs2)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(BITSET_Equal(bs1, bs2));
 
     BITSET_Trim(bs2);
-    if (!BITSET_Equal(bs1, bs2)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(BITSET_Equal(bs1, bs2));
 
-    BITSET_Xor(bs1, bs1);
+    TEST_ASSERT(BITSET_Xor(bs1, bs1));
     BITSET_Trim(bs1);
-    if (BITSET_BitCnt(bs1) ||
-        BITSET_Length(bs1)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!BITSET_BitCnt(bs1));
+    TEST_ASSERT(!BITSET_Length(bs1));
 
-    BITSET_Alloc(bs2, 1);
+    TEST_ASSERT(BITSET_Alloc(bs2, 1));
     BITSET_Trim(bs1);
-    if (BITSET_BitCnt(bs1) ||
-        BITSET_Length(bs1) ||
-        bs1->alloc) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!BITSET_BitCnt(bs1));
+    TEST_ASSERT(!BITSET_Length(bs1));
+    TEST_ASSERT(!bs1->alloc);
 
     BITSET_Delete(bs1);
     BITSET_Delete(bs2);
-    return ret;
+    return TEST_OK;
 }
 
 static
@@ -305,53 +249,44 @@ TestStatus
 test_bitset_and(
     const TestDesc* test)
 {
-    TestStatus ret = TEST_OK;
     BitSet* bs1 = BITSET_Create();
     BitSet* bs2 = BITSET_Create();
 
     BITSET_And(bs1, bs2);
-    if (BITSET_BitCnt(bs1) ||
-        BITSET_Length(bs1)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!BITSET_BitCnt(bs1));
+    TEST_ASSERT(!BITSET_Length(bs1));
 
-    BITSET_Set(bs1, 1);
-    BITSET_Set(bs2, 2);
+    TEST_ASSERT(BITSET_Set(bs1, 1));
+    TEST_ASSERT(BITSET_Set(bs2, 2));
     BITSET_And(bs1, bs1);
     BITSET_And(bs1, bs2);
-    if (BITSET_Get(bs1, 1) ||
-        BITSET_Get(bs1, 2) ||
-        BITSET_BitCnt(bs1) ||
-        BITSET_Length(bs1)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!BITSET_Get(bs1, 1));
+    TEST_ASSERT(!BITSET_Get(bs1, 2));
+    TEST_ASSERT(!BITSET_BitCnt(bs1));
+    TEST_ASSERT(!BITSET_Length(bs1));
 
-    BITSET_Set(bs1, 100);
-    BITSET_Set(bs1, 2);
-    BITSET_Set(bs2, 2);
+    TEST_ASSERT(BITSET_Set(bs1, 100));
+    TEST_ASSERT(BITSET_Set(bs1, 2));
+    TEST_ASSERT(BITSET_Set(bs2, 2));
     BITSET_And(bs1, bs2);
-    if (BITSET_Get(bs1, 100) ||
-        !BITSET_Get(bs1, 2) ||
-        BITSET_BitCnt(bs1) != 1 ||
-        BITSET_Length(bs1) != 3) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!BITSET_Get(bs1, 100));
+    TEST_ASSERT(BITSET_Get(bs1, 2));
+    TEST_ASSERT(BITSET_BitCnt(bs1) == 1);
+    TEST_ASSERT(BITSET_Length(bs1) == 3);
 
     BITSET_ClearAll(bs2);
-    BITSET_Set(bs1, 100);
-    BITSET_Set(bs1, 200);
-    BITSET_Set(bs2, 200);
+    TEST_ASSERT(BITSET_Set(bs1, 100));
+    TEST_ASSERT(BITSET_Set(bs1, 200));
+    TEST_ASSERT(BITSET_Set(bs2, 200));
     BITSET_And(bs1, bs2);
-    if (BITSET_Get(bs1, 100) ||
-        !BITSET_Get(bs1, 200) ||
-        BITSET_BitCnt(bs1) != 1 ||
-        BITSET_Length(bs1) != 201) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!BITSET_Get(bs1, 100));
+    TEST_ASSERT(BITSET_Get(bs1, 200));
+    TEST_ASSERT(BITSET_BitCnt(bs1) == 1);
+    TEST_ASSERT(BITSET_Length(bs1) == 201);
 
     BITSET_Delete(bs1);
     BITSET_Delete(bs2);
-    return ret;
+    return TEST_OK;
 }
 
 static
@@ -359,36 +294,31 @@ TestStatus
 test_bitset_or(
     const TestDesc* test)
 {
-    TestStatus ret = TEST_OK;
     BitSet* bs1 = BITSET_Create();
     BitSet* bs2 = BITSET_Create();
 
-    BITSET_Set(bs1, 1);
-    BITSET_Set(bs2, 2);
-    BITSET_Or(bs1, bs1);
-    BITSET_Or(bs1, bs2);
+    TEST_ASSERT(BITSET_Set(bs1, 1));
+    TEST_ASSERT(BITSET_Set(bs2, 2));
+    TEST_ASSERT(BITSET_Or(bs1, bs1));
+    TEST_ASSERT(BITSET_Or(bs1, bs2));
 
-    if (!BITSET_Get(bs1, 1) ||
-        !BITSET_Get(bs1, 2) ||
-        BITSET_BitCnt(bs1) != 2 ||
-        BITSET_Length(bs1) != 3) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(BITSET_Get(bs1, 1));
+    TEST_ASSERT(BITSET_Get(bs1, 2));
+    TEST_ASSERT(BITSET_BitCnt(bs1) == 2);
+    TEST_ASSERT(BITSET_Length(bs1) == 3);
 
-    BITSET_Set(bs2, 200);
-    BITSET_Or(bs1, bs2);
+    TEST_ASSERT(BITSET_Set(bs2, 200));
+    TEST_ASSERT(BITSET_Or(bs1, bs2));
 
-    if (!BITSET_Get(bs1, 1) ||
-        !BITSET_Get(bs1, 2) ||
-        !BITSET_Get(bs1, 200) ||
-        BITSET_BitCnt(bs1) != 3 ||
-        BITSET_Length(bs1) != 201) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(BITSET_Get(bs1, 1));
+    TEST_ASSERT(BITSET_Get(bs1, 2));
+    TEST_ASSERT(BITSET_Get(bs1, 200));
+    TEST_ASSERT(BITSET_BitCnt(bs1) == 3);
+    TEST_ASSERT(BITSET_Length(bs1) == 201);
 
     BITSET_Delete(bs1);
     BITSET_Delete(bs2);
-    return ret;
+    return TEST_OK;
 }
 
 static
@@ -396,47 +326,38 @@ TestStatus
 test_bitset_xor(
     const TestDesc* test)
 {
-    TestStatus ret = TEST_OK;
     BitSet* bs1 = BITSET_Create();
     BitSet* bs2 = BITSET_Create();
 
-    BITSET_Set(bs1, 1);
-    BITSET_Set(bs2, 2);
-    BITSET_Xor(bs1, bs2);
+    TEST_ASSERT(BITSET_Set(bs1, 1));
+    TEST_ASSERT(BITSET_Set(bs2, 2));
+    TEST_ASSERT(BITSET_Xor(bs1, bs2));
+    TEST_ASSERT(BITSET_Get(bs1, 1));
+    TEST_ASSERT(BITSET_Get(bs1, 2));
+    TEST_ASSERT(BITSET_BitCnt(bs1) == 2);
+    TEST_ASSERT(BITSET_Length(bs1) == 3);
 
-    if (!BITSET_Get(bs1, 1) ||
-        !BITSET_Get(bs1, 2) ||
-        BITSET_BitCnt(bs1) != 2 ||
-        BITSET_Length(bs1) != 3) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(BITSET_Xor(bs1, bs1));
+    TEST_ASSERT(!BITSET_Get(bs1, 1));
+    TEST_ASSERT(!BITSET_Get(bs1, 2));
+    TEST_ASSERT(!BITSET_BitCnt(bs1));
+    TEST_ASSERT(!BITSET_Length(bs1));
 
-    BITSET_Xor(bs1, bs1);
-    if (BITSET_Get(bs1, 1) ||
-        BITSET_Get(bs1, 2) ||
-        BITSET_BitCnt(bs1) ||
-        BITSET_Length(bs1)) {
-        ret = TEST_ERR;
-    }
-
-    BITSET_Xor(bs2, bs2);
-    BITSET_Set(bs1, 1);
-    BITSET_Set(bs1, 2);
-    BITSET_Set(bs2, 1);
-    BITSET_Set(bs2, 100);
-    BITSET_Xor(bs1, bs2);
-
-    if (!BITSET_Get(bs1, 100) ||
-        !BITSET_Get(bs1, 2) ||
-        BITSET_Get(bs1, 1) ||
-        BITSET_BitCnt(bs1) != 2 ||
-        BITSET_Length(bs1) != 101) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(BITSET_Xor(bs2, bs2));
+    TEST_ASSERT(BITSET_Set(bs1, 1));
+    TEST_ASSERT(BITSET_Set(bs1, 2));
+    TEST_ASSERT(BITSET_Set(bs2, 1));
+    TEST_ASSERT(BITSET_Set(bs2, 100));
+    TEST_ASSERT(BITSET_Xor(bs1, bs2));
+    TEST_ASSERT(BITSET_Get(bs1, 100));
+    TEST_ASSERT(BITSET_Get(bs1, 2));
+    TEST_ASSERT(!BITSET_Get(bs1, 1));
+    TEST_ASSERT(BITSET_BitCnt(bs1) == 2);
+    TEST_ASSERT(BITSET_Length(bs1) == 101);
 
     BITSET_Delete(bs1);
     BITSET_Delete(bs2);
-    return ret;
+    return TEST_OK;
 }
 
 static
@@ -444,41 +365,34 @@ TestStatus
 test_bitset_andnot(
     const TestDesc* test)
 {
-    TestStatus ret = TEST_OK;
     BitSet* bs1 = BITSET_Create();
     BitSet* bs2 = BITSET_Create();
 
-    BITSET_Set(bs1, 100);
-    BITSET_Copy(bs2, bs1);
-    BITSET_Set(bs2, 1);
+    TEST_ASSERT(BITSET_Set(bs1, 100));
+    TEST_ASSERT(BITSET_Copy(bs2, bs1));
+    TEST_ASSERT(BITSET_Set(bs2, 1));
     BITSET_AndNot(bs2, bs1);
+    TEST_ASSERT(BITSET_Get(bs2, 1));
+    TEST_ASSERT(!BITSET_Get(bs2, 100));
+    TEST_ASSERT(BITSET_BitCnt(bs2) == 1);
+    TEST_ASSERT(BITSET_Length(bs2) == 2);
 
-    if (!BITSET_Get(bs2, 1) ||
-        BITSET_Get(bs2, 100) ||
-        BITSET_BitCnt(bs2) != 1 ||
-        BITSET_Length(bs2) != 2) {
-        ret = TEST_ERR;
-    }
-
-    BITSET_Xor(bs1, bs1);
-    BITSET_Xor(bs2, bs2);
+    TEST_ASSERT(BITSET_Xor(bs1, bs1));
+    TEST_ASSERT(BITSET_Xor(bs2, bs2));
     BITSET_Trim(bs1);
     BITSET_Trim(bs2);
-    BITSET_Set(bs2, 1);
-    BITSET_Set(bs2, 2);
-    BITSET_Set(bs1, 1);
+    TEST_ASSERT(BITSET_Set(bs2, 1));
+    TEST_ASSERT(BITSET_Set(bs2, 2));
+    TEST_ASSERT(BITSET_Set(bs1, 1));
     BITSET_AndNot(bs2, bs1);
-
-    if (!BITSET_Get(bs2, 2) ||
-        BITSET_Get(bs2, 1) ||
-        BITSET_BitCnt(bs2) != 1 ||
-        BITSET_Length(bs2) != 3) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(BITSET_Get(bs2, 2));
+    TEST_ASSERT(!BITSET_Get(bs2, 1));
+    TEST_ASSERT(BITSET_BitCnt(bs2) == 1);
+    TEST_ASSERT(BITSET_Length(bs2) == 3);
 
     BITSET_Delete(bs1);
     BITSET_Delete(bs2);
-    return ret;
+    return TEST_OK;
 }
 
 static
@@ -486,7 +400,6 @@ TestStatus
 test_bitset_nextbit(
     const TestDesc* test)
 {
-    TestStatus ret = TEST_OK;
     BitSet* bs = BITSET_Create();
     static const int bits1[] = {1, 2, 3};
     static const int bits2[] = {1, 222, 333};
@@ -505,30 +418,27 @@ test_bitset_nextbit(
     };
 
     int i, k;
-    for (i=0; i<COUNT(tests); i++) {
+    for (i = 0; i < COUNT(tests); i++) {
         int nextbit = tests[i].start;
+
         BITSET_ClearAll(bs);
         BITSET_Trim(bs);
-        for (k=0; k<tests[i].nbits; k++) {
-            BITSET_Set(bs, tests[i].bits[k]);
+        for (k = 0; k < tests[i].nbits; k++) {
+            TEST_ASSERT(BITSET_Set(bs, tests[i].bits[k]));
         }
-        for (k=0; k<tests[i].nbits; k++) {
+        for (k = 0; k < tests[i].nbits; k++) {
             nextbit = BITSET_NextBit(bs, nextbit);
-            if (nextbit != tests[i].bits[k]) {
-                ret = TEST_ERR;
-            }
+            TEST_ASSERT(nextbit == tests[i].bits[k]);
         }
     }
 
     BITSET_ClearAll(bs);
-    BITSET_Set(bs, 2);
-    if (BITSET_NextBit(bs, 2) >= 0 ||
-        BITSET_NextBit(bs, 222) >= 0) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(BITSET_Set(bs, 2));
+    TEST_ASSERT(BITSET_NextBit(bs, 2) < 0);
+    TEST_ASSERT(BITSET_NextBit(bs, 222) < 0);
 
     BITSET_Delete(bs);
-    return ret;
+    return TEST_OK;
 }
 
 int main(int argc, char* argv[])
