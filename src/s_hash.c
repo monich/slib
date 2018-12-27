@@ -1,7 +1,7 @@
 /*
- * $Id: s_hash.c,v 1.50 2016/08/19 22:38:39 slava Exp $
+ * $Id: s_hash.c,v 1.51 2018/12/27 14:23:35 slava Exp $
  *
- * Copyright (C) 2000-2016 by Slava Monich
+ * Copyright (C) 2000-2018 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -212,7 +212,7 @@ STATIC const Itr hashEntryConstIterator = {
  */
 Bool hashDefaultCompare(HashKeyC key1, HashKeyC key2)
 {
-    return BoolValue((long)key1 == (long)key2);
+    return BoolValue(HASH_KEY_INT(key1) == HASH_KEY_INT(key2));
 }
 
 /**
@@ -220,7 +220,7 @@ Bool hashDefaultCompare(HashKeyC key1, HashKeyC key2)
  */
 HashCode hashDefaultHashProc(HashKeyC key)
 {
-    return ((HashCode)(PtrWord)key);
+    return (HashCode)HASH_KEY_INT(key);
 }
 
 /**
@@ -1112,6 +1112,9 @@ STATIC void HASH_ItrFreeEntry(Iterator * itr)
  * HISTORY:
  *
  * $Log: s_hash.c,v $
+ * Revision 1.51  2018/12/27 14:23:35  slava
+ * o use HASH_KEY_INT macro where appropriate
+ *
  * Revision 1.50  2016/08/19 22:38:39  slava
  * o make sure that HASH_ItrRemove doesn't crash after concurrent removal
  * o took out a bunch of redundant checks
