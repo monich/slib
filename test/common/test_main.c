@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 by Slava Monich
+ * Copyright (C) 2016-2018 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -29,16 +29,20 @@
 
 #include "test_common.h"
 
+#include <setjmp.h>
+
 typedef struct test_app {
     const void* tests;
     size_t test_size;
     int test_count;
+    jmp_buf mark;
 } TestApp;
 
 #define test_at(app,i) \
     ((const TestDesc*)(((I8u*)(app)->tests) + i * (app)->test_size))
 
-#if DEBUG_TRACE
+static jmp_buf current_mark;
+
 static
 void
 test_assert_handler(
@@ -48,16 +52,29 @@ test_assert_handler(
 {
     TRACE3("ASSERT: %s at %s:%lu\n", msg, file, line);
 }
-#endif /* DEBUG_TRACE */
 
 static
 int
 test_main_run_one(
     const TestDesc* test)
 {
-    int ret = test->run(test);
+    /* Long jumps occur only with non-zero TEST_ERR argument */
+    int ret = setjmp(current_mark);
+    if (ret == 0) {
+        ret = test->run(test);
+    }
     PRINT_Output("%s: %s\n", (ret == TEST_OK) ? "OK" : "FAILED", test->name);
     return ret;
+}
+
+void
+test_assert(
+    const char* msg,
+    const char* file,
+    long line)
+{
+    slibDebugAssertHandler(msg, file, line);
+    longjmp(current_mark, TEST_ERR);
 }
 
 static
@@ -103,26 +120,28 @@ test_main(
     Vector params;
 
     SLIB_InitModules();
-#if DEBUG_TRACE
     slibDebugAssertHandler = test_assert_handler;
-#endif
     opt = CMDLINE_Create(argv[0]);
     VECTOR_Init(&params, 0, NULL, NULL);
     CMDLINE_AddTrueOpt(opt, 'v', "verbose", "Enable verbose output", &verbose);
     if (CMDLINE_Parse(opt, argv+1, argc-1, 0, &params)) {
-        TestApp app;
-        app.tests = tests;
-        app.test_size = test_size;
-        app.test_count = test_count;
-        PRINT_SetMask(verbose ? PRINT_ALL : PRINT_NORMAL);
-        if (VECTOR_IsEmpty(&params)) {
-            ret = test_main_run(&app, NULL);
-        } else {
-            int i;
-            for (i=0, ret = TEST_OK; i<VECTOR_Size(&params); i++) {
-                int test_status = test_main_run(&app, VECTOR_Get(&params, i));
-                if (ret == TEST_OK && test_status != TEST_OK) {
-                    ret = test_status;
+        ret = setjmp(current_mark);
+        if (ret == 0) {
+            TestApp app;
+            app.tests = tests;
+            app.test_size = test_size;
+            app.test_count = test_count;
+            PRINT_SetMask(verbose ? PRINT_ALL : PRINT_NORMAL);
+            if (VECTOR_IsEmpty(&params)) {
+                ret = test_main_run(&app, NULL);
+            } else {
+                int i;
+                for (i=0, ret = TEST_OK; i<VECTOR_Size(&params); i++) {
+                    const char* name = VECTOR_Get(&params, i);
+                    int test_status = test_main_run(&app, name);
+                    if (ret == TEST_OK && test_status != TEST_OK) {
+                        ret = test_status;
+                    }
                 }
             }
         }
