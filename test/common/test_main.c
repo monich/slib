@@ -73,7 +73,7 @@ test_assert(
     const char* file,
     long line)
 {
-    slibDebugAssertHandler(msg, file, line);
+    test_assert_handler(msg, file, line);
     longjmp(current_mark, TEST_ERR);
 }
 
@@ -120,7 +120,9 @@ test_main(
     Vector params;
 
     SLIB_InitModules();
+#if DEBUG_TRACE
     slibDebugAssertHandler = test_assert_handler;
+#endif /* DEBUG_TRACE */
     opt = CMDLINE_Create(argv[0]);
     VECTOR_Init(&params, 0, NULL, NULL);
     CMDLINE_AddTrueOpt(opt, 'v', "verbose", "Enable verbose output", &verbose);
