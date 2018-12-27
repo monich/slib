@@ -1,5 +1,5 @@
 /*
- * $Id: s_buf.c,v 1.63 2018/12/27 23:13:18 slava Exp $
+ * $Id: s_buf.c,v 1.64 2018/12/27 23:29:41 slava Exp $
  *
  * Copyright (C) 2000-2018 by Slava Monich
  *
@@ -595,15 +595,16 @@ size_t BUFFER_Get(Buffer * b, void * data, size_t size)
                 n1 = b->alloc - b->start;
                 n2 = b->end;
             }
-            if (n1 > 0) {
-                n = MIN(n1,size);
-                n = MIN(n,avail);
-                if (data) memcpy(data, b->data + b->start, n);
-                nread += n;
-                avail -= n;
-                size -= n;
-            }
+            /* First part */
+            ASSERT(n1 > 0);
+            n = MIN(n1,size);
+            n = MIN(n,avail);
+            if (data) memcpy(data, b->data + b->start, n);
+            nread += n;
+            avail -= n;
+            size -= n;
             if (size > 0 && avail > 0 && n2 > 0) {
+                /* Second part */
                 n = MIN(n2,size);
                 n = MIN(n,avail);
                 if (data) memcpy(((I8u*)data) + nread, b->data, n);
@@ -649,15 +650,16 @@ size_t BUFFER_Move(Buffer * b, Buffer * dest, size_t size)
             n1 = b->alloc - b->start;
             n2 = b->end;
         }
-        if (n1 > 0) {
-            n = MIN(n1,size);
-            n = MIN(n,avail);
-            VERIFY(BUFFER_Put(dest, b->data + b->start, n, False));
-            moved += n;
-            avail -= n;
-            size -= n;
-        }
+        /* First part */
+        ASSERT(n1 > 0);
+        n = MIN(n1,size);
+        n = MIN(n,avail);
+        VERIFY(BUFFER_Put(dest, b->data + b->start, n, False));
+        moved += n;
+        avail -= n;
+        size -= n;
         if (size > 0 && avail > 0 && n2 > 0) {
+            /* Second part */
             n = MIN(n2,size);
             n = MIN(n,avail);
             VERIFY(BUFFER_Put(dest, b->data, n, False));
@@ -852,6 +854,9 @@ I64u DATA_Swap64(I64u data)
  * HISTORY:
  *
  * $Log: s_buf.c,v $
+ * Revision 1.64  2018/12/27 23:29:41  slava
+ * o removed unnecessary checks from BUFFER_Get and BUFFER_Move
+ *
  * Revision 1.63  2018/12/27 23:13:18  slava
  * o avoid unnecessary reallocations in BUFFER_EnsureCapacity
  *
