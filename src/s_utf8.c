@@ -1,7 +1,7 @@
 /*
- * $Id: s_utf8.c,v 1.10 2016/09/18 14:00:00 slava Exp $
+ * $Id: s_utf8.c,v 1.11 2018/12/27 14:13:13 slava Exp $
  *
- * Copyright (C) 2009-2016 by Slava Monich
+ * Copyright (C) 2009-2018 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -226,7 +226,6 @@ char * UTF8_Encode(const wchar_t * ws)
  */
 int UTF8_CharSize(const char * utf8, size_t maxlen)
 {
-    ASSERT(maxlen >= 0);
     ASSERT(utf8);
     if (utf8) {
         if (maxlen == 0) {
@@ -446,6 +445,9 @@ size_t UTF8_Decode2(wchar_t * ws, size_t max, const char * utf8)
  * HISTORY:
  *
  * $Log: s_utf8.c,v $
+ * Revision 1.11  2018/12/27 14:13:13  slava
+ * o removed pointless comparison of unsigned value to zero
+ *
  * Revision 1.10  2016/09/18 14:00:00  slava
  * o improved UTF-8 validation by UTF8_CharSize, removed unnecessary checks
  * o UTF8_Decode2 should return size_t
