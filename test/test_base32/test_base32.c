@@ -1,7 +1,7 @@
 /*
- * $Id: test_base32.c,v 1.1 2016/09/26 16:09:13 slava Exp $
+ * $Id: test_base32.c,v 1.2 2018/12/27 18:15:20 slava Exp $
  *
- * Copyright (C) 2016 by Slava Monich
+ * Copyright (C) 2016-2018 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -38,7 +38,6 @@ TestStatus
 test_base32_alloc(
     const TestDesc* test)
 {
-    TestStatus ret = TEST_OK;
     Str test_base32 = TEXT("MFRGGZDF");
     static const Char test_data[] = {'t', 'e', 's', 't'};
     Buffer* out = BUFFER_Create();
@@ -46,29 +45,22 @@ test_base32_alloc(
     int i;
 
     /* Test NULL resistance */
-    if (!BASE32_Decode(NULL, NULL) ||
-        !BASE32_StrictDecode(NULL, NULL)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(BASE32_Decode(NULL, NULL));
+    TEST_ASSERT(BASE32_StrictDecode(NULL, NULL));
 
     /* Simulate allocation failures */
-    for (i=0; i<4; i++) {
+    for (i = 0; i < 4; i++) {
         BUFFER_Clear(out);
         BUFFER_Trim(out);
         testMem.failAt = testMem.allocCount + i;
-        if (BASE32_Decode(test_base32, out)) {
-            ret = TEST_ERR;
-        }
-
+        TEST_ASSERT(!BASE32_Decode(test_base32, out));
         BUFFER_Clear(out);
         BUFFER_Trim(out);
         testMem.failAt = testMem.allocCount + i;
-        if (BASE32_StrictDecode(test_base32, out)) {
-            ret = TEST_ERR;
-        }
+        TEST_ASSERT(!BASE32_StrictDecode(test_base32, out));
     }
 
-    for (i=0; i<4; i++) {
+    for (i = 0; i < 4; i++) {
         File* in;
         const size_t len = StrLen(test_base32);
 
@@ -76,35 +68,27 @@ test_base32_alloc(
         BUFFER_Trim(out);
         in = FILE_MemIn(test_base32, len);
         testMem.failAt = testMem.allocCount + i;
-        if (BASE32_DecodeFile(in, out)) {
-            ret = TEST_ERR;
-        }
+        TEST_ASSERT(!BASE32_DecodeFile(in, out));
         FILE_Close(in);
 
         BUFFER_Clear(out);
         BUFFER_Trim(out);
         in = FILE_MemIn(test_base32, len);
         testMem.failAt = testMem.allocCount + i;
-        if (BASE32_StrictDecodeFile(in, out)) {
-            ret = TEST_ERR;
-        }
+        TEST_ASSERT(!BASE32_StrictDecodeFile(in, out));
         FILE_Close(in);
     }
 
     testMem.failAt = testMem.allocCount;
-    if (BASE32_Encode(test_data, sizeof(test_data), 0)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!BASE32_Encode(test_data, sizeof(test_data), 0));
 
     testMem.failAt = testMem.allocCount;
-    if (BASE32_EncodeStr(test_data, sizeof(test_data), sb, 0)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!BASE32_EncodeStr(test_data, sizeof(test_data), sb, 0));
 
     testMem.failAt = -1;
     BUFFER_Delete(out);
     STRBUF_Delete(sb);
-    return ret;
+    return TEST_OK;
 }
 
 static
@@ -112,7 +96,6 @@ TestStatus
 test_base32_encode(
     const TestDesc* test)
 {
-    TestStatus ret = TEST_OK;
     StrBuf* sb = STRBUF_Create();
     int i;
 
@@ -137,29 +120,24 @@ test_base32_encode(
         { "c\xef\xe3", TEXT("mpx6g"), BASE32_LOWERCASE }
     };
 
-    for (i=0; i<COUNT(tests); i++) {
+    for (i = 0; i < COUNT(tests); i++) {
         const char* in = tests[i].in;
         const int len = (int)strlen(in);
         Str out = tests[i].out;
         int flags = tests[i].flags;
-        Char* str;
-        
-        str = BASE32_Encode(in, len, flags);
-        if (!str || StrCmp(str, out)) {
-            Error("'%s' -> '%s'\n", in, str);
-            ret = TEST_ERR;
-        }
+        Char* str = BASE32_Encode(in, len, flags);
+
+        TEST_ASSERT(str);
+        TEST_ASSERT(!StrCmp(str, out));
         MEM_Free(str);
 
         STRBUF_Clear(sb);
-        if (!BASE32_EncodeStr(in, len, sb, flags) ||
-            !STRBUF_EqualsTo(sb, out)) {
-            ret = TEST_ERR;
-        }
+        TEST_ASSERT(BASE32_EncodeStr(in, len, sb, flags));
+        TEST_ASSERT(STRBUF_EqualsTo(sb, out));
     }
 
     STRBUF_Delete(sb);
-    return ret;
+    return TEST_OK;
 }
 
 static
@@ -167,7 +145,6 @@ TestStatus
 test_base32_decode_ok(
     const TestDesc* test)
 {
-    TestStatus ret = TEST_OK;
     Buffer* out = BUFFER_Create();
     int i;
 
@@ -193,21 +170,18 @@ test_base32_decode_ok(
         { TEXT("MPX6G"), "c\xef\xe3", BASE32_StrictDecode }
     };
 
-    for (i=0; i<COUNT(ok); i++) {
+    for (i = 0; i < COUNT(ok); i++) {
         const char* result = ok[i].out;
 
         BUFFER_Clear(out);
-        if (!ok[i].decode(ok[i].in, NULL) ||
-            !ok[i].decode(ok[i].in, out) ||
-            BUFFER_Size(out) != strlen(result) ||
-            memcmp(BUFFER_Access(out), result, BUFFER_Size(out))) {
-            Error("'%s'\n", ok[i].in);
-            ret = TEST_ERR;
-        }
+        TEST_ASSERT(ok[i].decode(ok[i].in, NULL));
+        TEST_ASSERT(ok[i].decode(ok[i].in, out));
+        TEST_ASSERT(BUFFER_Size(out) == strlen(result));
+        TEST_ASSERT(!memcmp(BUFFER_Access(out), result, BUFFER_Size(out)));
     }
 
     BUFFER_Delete(out);
-    return ret;
+    return TEST_OK;
 }
 
 static
@@ -215,7 +189,6 @@ TestStatus
 test_base32_decode_err(
     const TestDesc* test)
 {
-    TestStatus ret = TEST_OK;
     Buffer* out = BUFFER_Create();
     int i;
 
@@ -234,17 +207,14 @@ test_base32_decode_err(
         { TEXT("MFRGg"), BASE32_StrictDecode }
     };
 
-    for (i=0; i<COUNT(err); i++) {
-        if (err[i].decode(err[i].in, NULL) ||
-            err[i].decode(err[i].in, out) ||
-            BUFFER_Size(out)) {
-            Error("'%s'\n", err[i].in);
-            ret = TEST_ERR;
-        }
+    for (i = 0; i < COUNT(err); i++) {
+        TEST_ASSERT(!err[i].decode(err[i].in, NULL));
+        TEST_ASSERT(!err[i].decode(err[i].in, out));
+        TEST_ASSERT(!BUFFER_Size(out));
     }
 
     BUFFER_Delete(out);
-    return ret;
+    return TEST_OK;
 }
 
 int
