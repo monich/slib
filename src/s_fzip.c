@@ -1,7 +1,7 @@
 /*
- * $Id: s_fzip.c,v 1.29 2015/08/16 16:07:31 slava Exp $
+ * $Id: s_fzip.c,v 1.30 2018/12/27 14:35:30 slava Exp $
  *
- * Copyright (C) 2001-2015 by Slava Monich
+ * Copyright (C) 2001-2018 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -124,7 +124,7 @@ STATIC const FileIO ZipIO = {
 STATIC voidpf ZipMemAlloc(voidpf opaque, uInt items, uInt size)
 {
     UNREF(opaque);
-    return MEM_Alloc(items * size);
+    return MEM_Alloc((size_t)items * size);
 }
 
 STATIC void ZipMemFree(voidpf opaque, voidpf address)
@@ -682,6 +682,9 @@ Bool FILE_ZipFinish(File * f)
  * HISTORY:
  *
  * $Log: s_fzip.c,v $
+ * Revision 1.30  2018/12/27 14:35:30  slava
+ * o avoid overflow of 'unsigned int' before conversion to size_t
+ *
  * Revision 1.29  2015/08/16 16:07:31  slava
  * o housekeeping
  *
