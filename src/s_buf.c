@@ -1,7 +1,7 @@
 /*
- * $Id: s_buf.c,v 1.62 2016/09/25 09:56:23 slava Exp $
+ * $Id: s_buf.c,v 1.63 2018/12/27 23:13:18 slava Exp $
  *
- * Copyright (C) 2000-2016 by Slava Monich
+ * Copyright (C) 2000-2018 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -391,7 +391,6 @@ void * BUFFER_Steal(Buffer * b, size_t * size)
 Bool BUFFER_EnsureCapacity(Buffer * b, size_t minsize, Bool partOK)
 {
     if (minsize > b->alloc) {
-        I8u * newbuf;
         if (b->flags & BUFFER_READONLY) {
             return False;
         } else if (minsize > b->maxsiz){
@@ -409,29 +408,30 @@ Bool BUFFER_EnsureCapacity(Buffer * b, size_t minsize, Bool partOK)
             }
         }
 
-        /* should use Realloc to minimize copying? */
-        newbuf = MEM_NewArray(I8u,minsize);
-        if (newbuf) {
-            if (b->end < b->start || (b->flags & BUFFER_FULL)) {
-                memcpy(newbuf, b->data + b->start, b->alloc - b->start);
-                memcpy(newbuf + b->alloc - b->start, b->data, b->end);
-                b->end = b->alloc - b->start + b->end;
-            } else if (b->end > b->start) {
-                memcpy(newbuf, b->data + b->start, b->end - b->start);
-                b->end = b->end - b->start;
+        if (minsize > b->alloc) {
+            /* should use Realloc to minimize copying? */
+            I8u * newbuf = MEM_NewArray(I8u,minsize);
+            if (newbuf) {
+                if (b->end < b->start || (b->flags & BUFFER_FULL)) {
+                    memcpy(newbuf, b->data + b->start, b->alloc - b->start);
+                    memcpy(newbuf + b->alloc - b->start, b->data, b->end);
+                    b->end = b->alloc - b->start + b->end;
+                } else if (b->end > b->start) {
+                    memcpy(newbuf, b->data + b->start, b->end - b->start);
+                    b->end = b->end - b->start;
+                } else {
+                    b->end = 0;
+                }
+
+                if (b->flags & BUFFER_OWN_DATA) MEM_Free(b->data);
+                b->flags |= BUFFER_OWN_DATA;
+                b->flags &= ~BUFFER_FULL;
+                b->data = newbuf;
+                b->alloc = minsize;
+                b->start = 0;
             } else {
-                b->end = 0;
+                return False;
             }
-
-            if (b->flags & BUFFER_OWN_DATA) MEM_Free(b->data);
-            b->flags |= BUFFER_OWN_DATA;
-            b->flags &= ~BUFFER_FULL;
-            b->data = newbuf;
-            b->alloc = minsize;
-            b->start = 0;
-
-        } else {
-            return False;
         }
     }
     return True;
@@ -852,6 +852,9 @@ I64u DATA_Swap64(I64u data)
  * HISTORY:
  *
  * $Log: s_buf.c,v $
+ * Revision 1.63  2018/12/27 23:13:18  slava
+ * o avoid unnecessary reallocations in BUFFER_EnsureCapacity
+ *
  * Revision 1.62  2016/09/25 09:56:23  slava
  * o added BUFFER_Reserve and BUFFER_Reserve0
  *
