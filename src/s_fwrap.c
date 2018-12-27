@@ -1,7 +1,7 @@
 /*
- * $Id: s_fwrap.c,v 1.15 2015/08/16 16:07:31 slava Exp $
+ * $Id: s_fwrap.c,v 1.16 2018/12/27 16:30:49 slava Exp $
  *
- * Copyright (C) 2001-2015 by Slava Monich
+ * Copyright (C) 2001-2016 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -243,9 +243,7 @@ STATIC int WrapWrite(File * f, const void * buf, int len)
                                 }
 
                                 /* move the loop variable back */
-                                if (marker >= 0) {
-                                    i = marker;
-                                }
+                                i = marker;
 
                             /* the first word may exceed the margin... */
                             } else if ((w->flags & WRAP_SCAN_WORD) &&
@@ -463,6 +461,9 @@ Bool WRAP_Enable(File * f, Bool enable)
  * HISTORY:
  *
  * $Log: s_fwrap.c,v $
+ * Revision 1.16  2018/12/27 16:30:49  slava
+ * o took out unnecessary comparison
+ *
  * Revision 1.15  2015/08/16 16:07:31  slava
  * o housekeeping
  *
