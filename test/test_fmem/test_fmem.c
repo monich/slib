@@ -1,7 +1,7 @@
 /*
- * $Id: test_fmem.c,v 1.2 2016/10/02 22:55:21 slava Exp $
+ * $Id: test_fmem.c,v 1.3 2018/12/27 23:44:41 slava Exp $
  *
- * Copyright (C) 2016 by Slava Monich
+ * Copyright (C) 2016-2018 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -38,7 +38,6 @@ TestStatus
 test_fmem_alloc(
     const TestDesc* test)
 {
-    TestStatus ret = TEST_OK;
     static const I8u data[] = {1, 2, 3};
     I8u databuf[4];
     Buffer* buf = BUFFER_Create();
@@ -47,64 +46,48 @@ test_fmem_alloc(
 
     /* Test NULL resistance */
     FILE_MemClear(NULL);
-    if (FILE_IsMem(NULL) ||
-        FILE_MemSize(NULL) ||
-        FILE_MemData(NULL)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!FILE_IsMem(NULL));
+    TEST_ASSERT(!FILE_MemSize(NULL));
+    TEST_ASSERT(!FILE_MemData(NULL));
 
     /* Simulate allocation failures */
-    for (i=0; i<3; i++) {
+    for (i = 0; i < 3; i++) {
         testMem.failAt = testMem.allocCount + i;
-        if (FILE_Mem()) {
-            ret = TEST_ERR;
-        }
+        TEST_ASSERT(!FILE_Mem());
     }
 
-    for (i=0; i<3; i++) {
+    for (i = 0; i < 3; i++) {
         testMem.failAt = testMem.allocCount + i;
-        if (FILE_MemIn(data, sizeof(data))) {
-            ret = TEST_ERR;
-        }
+        TEST_ASSERT(!FILE_MemIn(data, sizeof(data)));
     }
 
-    for (i=0; i<3; i++) {
+    for (i = 0; i < 3; i++) {
         testMem.failAt = testMem.allocCount + i;
-        if (FILE_MemOut(1)) {
-            ret = TEST_ERR;
-        }
+        TEST_ASSERT(!FILE_MemOut(1));
     }
 
-    for (i=0; i<3; i++) {
+    for (i = 0; i < 3; i++) {
         testMem.failAt = testMem.allocCount + i;
-        if (FILE_MemOut2(databuf, sizeof(databuf))) {
-            ret = TEST_ERR;
-        }
+        TEST_ASSERT(!FILE_MemOut2(databuf, sizeof(databuf)));
     }
 
-    for (i=0; i<2; i++) {
+    for (i = 0; i < 2; i++) {
         testMem.failAt = testMem.allocCount + i;
-        if (FILE_MemBuf(buf, False)) {
-            ret = TEST_ERR;
-        }
+        TEST_ASSERT(!FILE_MemBuf(buf, False));
     }
 
     /* Once one write fails, the second one will fail too? */
     testMem.failAt = testMem.allocCount;
-    if (FILE_Write(f, data, sizeof(data)) >= 0 ||
-        FILE_Write(f, data, sizeof(data)) >= 0) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(FILE_Write(f, data, sizeof(data)) < 0);
+    TEST_ASSERT(FILE_Write(f, data, sizeof(data)) < 0);
 
     /* But after FILE_MemClear() it should succeed */
     FILE_MemClear(f);
-    if (FILE_Write(f, data, sizeof(data)) != sizeof(data)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(FILE_Write(f, data, sizeof(data)) == sizeof(data));
 
     BUFFER_Delete(buf);
     FILE_Close(f);
-    return ret;
+    return TEST_OK;
 }
 
 static
@@ -112,45 +95,39 @@ TestStatus
 test_fmem_read(
     const TestDesc* test)
 {
-    TestStatus ret = TEST_OK;
     static const I8u data[] = {1, 2, 3};
     int skip = 1;
     File* f = FILE_MemIn(data, sizeof(data));
     Buffer* buf = BUFFER_Create();
 
-    if (!FILE_IsMem(f) ||
-        FILE_IsFileIO(f) ||
-        FILE_Fd(f) >= 1 ||
-        FILE_TargetFd(f) >= 1 ||
-        FILE_CanBlock(f) ||
-        FILE_Eof(f) ||
-        FILE_Flush(f) ||
-        FILE_MemSize(f) != sizeof(data)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(FILE_IsMem(f));
+    TEST_ASSERT(!FILE_IsFileIO(f));
+    TEST_ASSERT(FILE_Fd(f) < 1);
+    TEST_ASSERT(FILE_TargetFd(f) < 1);
+    TEST_ASSERT(!FILE_CanBlock(f));
+    TEST_ASSERT(!FILE_Eof(f));
+    TEST_ASSERT(!FILE_Flush(f));
+    TEST_ASSERT(FILE_MemSize(f) == sizeof(data));
 
-    if (FILE_ReadData(f, buf, -1) != sizeof(data) ||
-        !FILE_Eof(f) ||
-        FILE_BytesRead(f) != sizeof(data) ||
-        BUFFER_Size(buf) != sizeof(data) ||
-        memcmp(BUFFER_Access(buf), data, sizeof(data))) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(FILE_ReadData(f, buf, -1) == sizeof(data));
+    TEST_ASSERT(FILE_Eof(f));
+    TEST_ASSERT(FILE_BytesRead(f) == sizeof(data));
+    TEST_ASSERT(BUFFER_Size(buf) == sizeof(data));
+    TEST_ASSERT(!memcmp(BUFFER_Access(buf), data, sizeof(data)));
 
     BUFFER_Clear(buf);
     FILE_Close(f);
 
     f = FILE_MemIn(data, sizeof(data));
-    if (FILE_Skip(f, skip) != (size_t)skip ||
-        FILE_ReadData(f, buf, -1) != (int)(sizeof(data)-skip) ||
-        BUFFER_Size(buf) != sizeof(data)-skip ||
-        memcmp(BUFFER_Access(buf), data + skip, sizeof(data)-skip)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(f);
+    TEST_ASSERT(FILE_Skip(f, skip) == (size_t)skip);
+    TEST_ASSERT(FILE_ReadData(f, buf, -1) == (int)(sizeof(data)-skip));
+    TEST_ASSERT(BUFFER_Size(buf) == sizeof(data)-skip);
+    TEST_ASSERT(!memcmp(BUFFER_Access(buf), data + skip, sizeof(data)-skip));
 
     BUFFER_Delete(buf);
     FILE_Close(f);
-    return ret;
+    return TEST_OK;
 }
 
 static
@@ -158,29 +135,24 @@ TestStatus
 test_fmem_write(
     const TestDesc* test)
 {
-    TestStatus ret = TEST_OK;
     static const I8u data[] = {1, 2, 3};
     File* f = FILE_Mem();
     Buffer* buf = BUFFER_Create();
 
-    if (!FILE_WriteAll(f, data, sizeof(data)) ||
-        FILE_MemSize(f) != sizeof(data) ||
-        memcmp(FILE_MemData(f), data, sizeof(data))) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(FILE_WriteAll(f, data, sizeof(data)));
+    TEST_ASSERT(FILE_MemSize(f) == sizeof(data));
+    TEST_ASSERT(!memcmp(FILE_MemData(f), data, sizeof(data)));
 
-    if (FILE_ReadData(f, buf, -1) != sizeof(data) ||
-        !FILE_Eof(f) ||
-        FILE_BytesWritten(f) != sizeof(data) ||
-        FILE_BytesRead(f) != sizeof(data) ||
-        BUFFER_Size(buf) != sizeof(data) ||
-        memcmp(BUFFER_Access(buf), data, sizeof(data))) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(FILE_ReadData(f, buf, -1) == sizeof(data));
+    TEST_ASSERT(FILE_Eof(f));
+    TEST_ASSERT(FILE_BytesWritten(f) == sizeof(data));
+    TEST_ASSERT(FILE_BytesRead(f) == sizeof(data));
+    TEST_ASSERT(BUFFER_Size(buf) == sizeof(data));
+    TEST_ASSERT(!memcmp(BUFFER_Access(buf), data, sizeof(data)));
 
     BUFFER_Delete(buf);
     FILE_Close(f);
-    return ret;
+    return TEST_OK;
 }
 
 int
