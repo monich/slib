@@ -1,7 +1,7 @@
 /*
- * $Id: test_bitset.c,v 1.2 2018/12/27 18:17:29 slava Exp $
+ * $Id: test_bitset.c,v 1.3 2019/01/16 23:59:28 slava Exp $
  *
- * Copyright (C) 2016-2018 by Slava Monich
+ * Copyright (C) 2016-2019 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -410,11 +410,11 @@ test_bitset_nextbit(
         const int* bits;
         int nbits;
     } tests [] = {
-        { -1, bits1, COUNT(bits1) },
-        { 0, bits1, COUNT(bits1) },
-        { -1, bits2, COUNT(bits2) },
-        { -1, bits3, COUNT(bits3) },
-        { 0, bits4, COUNT(bits4) },
+        { -1, TEST_ARRAY_AND_COUNT(bits1) },
+        { 0, TEST_ARRAY_AND_COUNT(bits1) },
+        { -1, TEST_ARRAY_AND_COUNT(bits2) },
+        { -1, TEST_ARRAY_AND_COUNT(bits3) },
+        { 0, TEST_ARRAY_AND_COUNT(bits4) },
     };
 
     int i, k;
@@ -429,6 +429,10 @@ test_bitset_nextbit(
         for (k = 0; k < tests[i].nbits; k++) {
             nextbit = BITSET_NextBit(bs, nextbit);
             TEST_ASSERT(nextbit == tests[i].bits[k]);
+        }
+        BITSET_ClearAll(bs);
+        for (k = 0; k < tests[i].nbits; k++) {
+            TEST_ASSERT(BITSET_NextBit(bs, nextbit) < 0);
         }
     }
 
