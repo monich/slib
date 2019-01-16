@@ -1,7 +1,7 @@
 /*
- * $Id: s_hash.c,v 1.51 2018/12/27 14:23:35 slava Exp $
+ * $Id: s_hash.c,v 1.52 2019/01/16 23:54:38 slava Exp $
  *
- * Copyright (C) 2000-2018 by Slava Monich
+ * Copyright (C) 2000-2019 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -911,18 +911,17 @@ Bool HASH_Examine(const HashTable * ht, HashCB cb, void* ctx)
  */
 STATIC void HASH_ItrInit(HashIterator * hi, HashTable * ht, const Itr * type)
 {
-    const int n = _NumBuckets(ht);
     ITR_Init(&hi->itr, type);
     hi->ht = ht;
     hi->current = NULL;
     hi->next = NULL;
     hi->currentPos = -1;
-    hi->nextPos = -1;
-    while (++hi->nextPos < n) {
-        hi->next = hi->ht->buckets[hi->nextPos];
-        if (hi->next) {
-            break;
-        }
+    hi->nextPos = 0;
+
+    /* caller makes sure that hash table is not empty, there must be
+     * non-empty bucket in there */
+    while (!(hi->next = hi->ht->buckets[hi->nextPos])) {
+        hi->nextPos++;
     }
 }
 
@@ -1112,6 +1111,10 @@ STATIC void HASH_ItrFreeEntry(Iterator * itr)
  * HISTORY:
  *
  * $Log: s_hash.c,v $
+ * Revision 1.52  2019/01/16 23:54:38  slava
+ * o removed unnecessary check from HASH_ItrInit. Its caller makes sure
+ *   that hash table is not empty.
+ *
  * Revision 1.51  2018/12/27 14:23:35  slava
  * o use HASH_KEY_INT macro where appropriate
  *
