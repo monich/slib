@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016-2018 by Slava Monich
+ * Copyright (C) 2016-2019 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -78,6 +78,8 @@ test_assert(
     test_main(argc,argv,tests,sizeof(tests[0]),COUNT(tests))
 #define TEST_ASSERT(x) \
     ((x) ? NOTHING : test_assert(#x,__FILE__,__LINE__))
+#define TEST_ARRAY_AND_SIZE(a) a, sizeof(a)
+#define TEST_ARRAY_AND_COUNT(a) a, COUNT(a)
 
 #endif /* TEST_COMMON_H */
 
