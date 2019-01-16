@@ -1,7 +1,7 @@
 /*
- * $Id: s_bitset.c,v 1.22 2016/09/03 11:56:19 slava Exp $
+ * $Id: s_bitset.c,v 1.23 2019/01/16 23:48:42 slava Exp $
  *
- * Copyright (C) 2001-2016 by Slava Monich
+ * Copyright (C) 2001-2019 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -583,14 +583,10 @@ int BITSET_NextBit(const BitSet * bs, int startPos)
             } else {
                 const BitUnit unit = bu[unitIndex];
                 if (unit) {
-                    const BitUnit upperBits = ~((1UL << (i+1)) - 1UL);
+                    const BitUnit upperBits = ~((1UL << (++i)) - 1UL);
                     if (unit & upperBits) {
-                        for (i++; i<BITSET_BITS_PER_UNIT;i++) {
-                            if (unit & (1 << i)) {
-                                startPos &= (~BITSET_BIT_INDEX_MASK);
-                                return (startPos + i);
-                            }
-                        }
+                        while (!(unit & (1 << i))) i++;
+                        return (startPos & (~BITSET_BIT_INDEX_MASK)) + i;
                     }
                 }
                 /* start with the next unit */
@@ -641,6 +637,9 @@ int BITSET_NextBit(const BitSet * bs, int startPos)
  * HISTORY:
  *
  * $Log: s_bitset.c,v $
+ * Revision 1.23  2019/01/16 23:48:42  slava
+ * o made BITSET_NextBit a bit more compact and hopefully a bit faster
+ *
  * Revision 1.22  2016/09/03 11:56:19  slava
  * o removed unnecessary check from BITSET_NextBit
  *
