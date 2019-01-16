@@ -1,7 +1,7 @@
 /*
- * $Id: test_hash.c,v 1.3 2017/10/28 22:27:19 slava Exp $
+ * $Id: test_hash.c,v 1.4 2019/01/16 23:57:53 slava Exp $
  *
- * Copyright (C) 2016-2017 by Slava Monich
+ * Copyright (C) 2016-2019 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -38,43 +38,34 @@ TestStatus
 test_hash_alloc(
     const TestDesc* test)
 {
-    TestStatus ret = TEST_OK;
     HashTable* ht1;
     HashTable* ht2;
     short primeIndex;
 
     /* Test NULL resistance */
     HASH_Delete(NULL);
-    if (HASH_Init(NULL, 0, NULL, NULL, NULL) ||
-        !HASH_Examine(NULL, NULL, NULL)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!HASH_Init(NULL, 0, NULL, NULL, NULL));
+    TEST_ASSERT(HASH_Examine(NULL, NULL, NULL));
 
     /* HASH_Init makes sure HASH_InitModule() is called. Since
      * HASH_InitModule has already been called twice at this point,
-     * we call HASH_Shutdown() twice. */
+     * we can call HASH_Shutdown() twice. */
     HASH_Shutdown();
     HASH_Shutdown();
     ht1 = HASH_Create(0, NULL, NULL, NULL);
     ht2 = HASH_Create(0, NULL, NULL, NULL);
-    HASH_InitModule();
+    HASH_InitModule(); /* Now HASH_InitModule() is called twice again */
 
     /* Simulate allocation failures */
     testMem.failAt = testMem.allocCount;
-    if (HASH_Create(0, NULL, NULL, NULL)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!HASH_Create(0, NULL, NULL, NULL));
 
     testMem.failAt = testMem.allocCount + 1;
-    if (HASH_Create(1, NULL, NULL, NULL)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!HASH_Create(1, NULL, NULL, NULL));
 
     testMem.failAt = testMem.allocCount;
     testMem.failCount = 2;
-    if (HASH_Put(ht1, HASH_INT_KEY(1), HASH_INT_VALUE(1))) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!HASH_Put(ht1, HASH_INT_KEY(1), HASH_INT_VALUE(1)));
 
     testMem.failCount = 1;
     /*
@@ -85,64 +76,44 @@ test_hash_alloc(
      */
 #ifndef _WIN32
     testMem.failAt = testMem.allocCount + 1;
-    if (HASH_Put(ht1, HASH_INT_KEY(1), HASH_INT_VALUE(1))) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!HASH_Put(ht1, HASH_INT_KEY(1), HASH_INT_VALUE(1)));
 #endif
 
     testMem.failAt = testMem.allocCount;
-    if (HASH_TryPut(ht1, HASH_INT_KEY(1), HASH_INT_VALUE(1))) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!HASH_TryPut(ht1, HASH_INT_KEY(1), HASH_INT_VALUE(1)));
 
     HASH_Put(ht1, HASH_INT_KEY(1), HASH_INT_VALUE(1));
     testMem.failAt = testMem.allocCount;
-    if (HASH_Keys(ht1)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!HASH_Keys(ht1));
 
     testMem.failAt = testMem.allocCount;
-    if (HASH_Values(ht1)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!HASH_Values(ht1));
 
     testMem.failAt = testMem.allocCount;
-    if (HASH_Entries(ht1)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!HASH_Entries(ht1));
 
     testMem.failAt = testMem.allocCount;
-    if (HASH_ConstKeys(ht1)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!HASH_ConstKeys(ht1));
 
     testMem.failAt = testMem.allocCount;
-    if (HASH_ConstValues(ht1)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!HASH_ConstValues(ht1));
 
     testMem.failAt = testMem.allocCount;
-    if (HASH_ConstEntries(ht1)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!HASH_ConstEntries(ht1));
 
     testMem.failAt = testMem.allocCount;
-    if (HASH_Copy(ht2, ht1)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!HASH_Copy(ht2, ht1));
 
     testMem.failAt = testMem.allocCount;
     primeIndex = ht1->primeIndex;
     ht1->loadFactor = 100;
     HASH_Rehash(ht1, 11);
-    if (ht1->primeIndex != primeIndex) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(ht1->primeIndex == primeIndex);
 
     testMem.failAt = -1;
     HASH_Delete(ht1);
     HASH_Delete(ht2);
-    return ret;
+    return TEST_OK;
 }
 
 static
@@ -150,141 +121,115 @@ TestStatus
 test_hash_basic(
     const TestDesc* test)
 {
-    TestStatus ret = TEST_OK;
     HashTable* ht1 = HASH_Create(0, NULL, NULL, NULL);
     HashTable* ht2 = HASH_Create(0, NULL, NULL, NULL);
     char* skey;
     short primeIndex;
     int i;
 
-    if (!HASH_Examine(ht1, NULL, NULL)) {
-        ret = TEST_ERR;
-    }
-
+    TEST_ASSERT(HASH_Examine(ht1, NULL, NULL));
     HASH_Reinit(ht1, NULL, NULL, NULL);
     HASH_Destroy(ht1);
-    if (!HASH_Init(ht1, 0, hashDefaultCompare, hashDefaultHashProc,
-        hashFreeNothingProc)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(HASH_Init(ht1, 0, hashDefaultCompare, hashDefaultHashProc,
+        hashFreeNothingProc));
 
     HASH_Reinit(ht1, hashDefaultCompare, hashDefaultHashProc,
         hashFreeNothingProc);
 
     /* There's nothing there yet */
-    if (HASH_Get(ht1, HASH_INT_KEY(1)) ||
-        HASH_Contains(ht1, HASH_INT_KEY(1)) ||
-        HASH_Update(ht1, HASH_INT_KEY(1), HASH_INT_VALUE(1))) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!HASH_Get(ht1, HASH_INT_KEY(1)));
+    TEST_ASSERT(!HASH_Contains(ht1, HASH_INT_KEY(1)));
+    TEST_ASSERT(!HASH_Update(ht1, HASH_INT_KEY(1), HASH_INT_VALUE(1)));
 
     /* Put and update */
-    if (!HASH_TryPut(ht1, HASH_INT_KEY(1), HASH_INT_VALUE(1)) ||
-        HASH_Get(ht1, HASH_INT_KEY(1)) != HASH_INT_VALUE(1) ||
-        !HASH_Contains(ht1, HASH_INT_KEY(1)) ||
-        HASH_Size(ht1) != 1 ||
-        !HASH_Put(ht1, HASH_INT_KEY(1), HASH_INT_VALUE(2)) ||
-        HASH_Get(ht1, HASH_INT_KEY(1)) != HASH_INT_VALUE(2) ||
-        !HASH_Contains(ht1, HASH_INT_KEY(1)) ||
-        !HASH_Update(ht1, HASH_INT_KEY(1), HASH_INT_VALUE(3)) ||
-        HASH_Get(ht1, HASH_INT_KEY(1)) != HASH_INT_VALUE(3) ||
-        !HASH_Contains(ht1, HASH_INT_KEY(1))) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(HASH_TryPut(ht1, HASH_INT_KEY(1), HASH_INT_VALUE(1)));
+    TEST_ASSERT(HASH_Get(ht1, HASH_INT_KEY(1)) == HASH_INT_VALUE(1));
+    TEST_ASSERT(HASH_Contains(ht1, HASH_INT_KEY(1)));
+    TEST_ASSERT(HASH_Size(ht1) == 1);
+    TEST_ASSERT(HASH_Put(ht1, HASH_INT_KEY(1), HASH_INT_VALUE(2)));
+    TEST_ASSERT(HASH_Get(ht1, HASH_INT_KEY(1)) == HASH_INT_VALUE(2));
+    TEST_ASSERT(HASH_Contains(ht1, HASH_INT_KEY(1)));
+    TEST_ASSERT(HASH_Update(ht1, HASH_INT_KEY(1), HASH_INT_VALUE(3)));
+    TEST_ASSERT(HASH_Get(ht1, HASH_INT_KEY(1)) == HASH_INT_VALUE(3));
+    TEST_ASSERT(HASH_Contains(ht1, HASH_INT_KEY(1)));
 
-    if (HASH_Update(ht1, HASH_INT_KEY(12), HASH_INT_VALUE(2)) ||
-        HASH_Contains(ht1, HASH_INT_KEY(12)) ||
-        HASH_Get(ht1, HASH_INT_KEY(12))) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!HASH_Update(ht1, HASH_INT_KEY(12), HASH_INT_VALUE(2)));
+    TEST_ASSERT(!HASH_Contains(ht1, HASH_INT_KEY(12)));
+    TEST_ASSERT(!HASH_Get(ht1, HASH_INT_KEY(12)));
 
-    if (!HASH_Put(ht1, HASH_INT_KEY(12), HASH_INT_VALUE(2)) ||
-        !HASH_Put(ht1, HASH_INT_KEY(12), HASH_INT_VALUE(2)) ||
-        !HASH_Contains(ht1, HASH_INT_KEY(12)) ||
-        !HASH_Get(ht1, HASH_INT_KEY(12))) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(HASH_Put(ht1, HASH_INT_KEY(12), HASH_INT_VALUE(2)));
+    TEST_ASSERT(HASH_Put(ht1, HASH_INT_KEY(12), HASH_INT_VALUE(2)));
+    TEST_ASSERT(HASH_Contains(ht1, HASH_INT_KEY(12)));
+    TEST_ASSERT(HASH_Get(ht1, HASH_INT_KEY(12)));
 
     /* Copy */
-    if (!HASH_Copy(ht2, ht1) ||
-        HASH_Size(ht2) != HASH_Size(ht1) ||
-        HASH_Get(ht2, HASH_INT_KEY(1)) != HASH_INT_VALUE(3)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(HASH_Copy(ht2, ht1));
+    TEST_ASSERT(HASH_Size(ht2) == HASH_Size(ht1));
+    TEST_ASSERT(HASH_Get(ht2, HASH_INT_KEY(1)) == HASH_INT_VALUE(3));
 
     /* Remove */
-    if (!HASH_Remove(ht1, HASH_INT_KEY(1)) ||
-        HASH_Remove(ht1, HASH_INT_KEY(1)) ||
-        !HASH_Remove(ht1, HASH_INT_KEY(12)) ||
-        HASH_Remove(ht1, HASH_INT_KEY(12)) ||
-        !HASH_IsEmpty(ht1)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(HASH_Remove(ht1, HASH_INT_KEY(1)));
+    TEST_ASSERT(!HASH_Remove(ht1, HASH_INT_KEY(1)));
+    TEST_ASSERT(HASH_Remove(ht1, HASH_INT_KEY(12)));
+    TEST_ASSERT(!HASH_Remove(ht1, HASH_INT_KEY(12)));
+    TEST_ASSERT(HASH_IsEmpty(ht1));
 
     /* 11 is the first prime */
     primeIndex = ht1->primeIndex;
-    for (i=0; i<11; i++) {
-        HASH_Put(ht1, HASH_INT_KEY(i), HASH_INT_VALUE(i));
+    for (i = 0; i < 11; i++) {
+        TEST_ASSERT(HASH_Put(ht1, HASH_INT_KEY(i), HASH_INT_VALUE(i)));
     }
     /* Rehash should have happened automatically */
-    if (ht1->primeIndex == primeIndex) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(ht1->primeIndex != primeIndex);
     HASH_Clear(ht1);
-    if (!HASH_IsEmpty(ht1)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(HASH_IsEmpty(ht1));
 
     /* Strings */
     HASH_Reinit(ht1, hashCompareStringKey, stringHashProc,
         hashFreeKeyProc);
 
-    if (!HASH_Put(ht1, skey = STRING_Dup("One"), HASH_INT_VALUE(1)) ||
-        !HASH_Contains(ht1, skey) ||
-        !HASH_Contains(ht1, "One") ||
-        HASH_Contains(ht1, "ONE") ||
-        HASH_Contains(ht1, "Two") ||
-        !HASH_Put(ht1, skey = STRING_Dup("One"), HASH_INT_VALUE(2)) ||
-        !HASH_Contains(ht1, skey) ||
-        !HASH_Contains(ht1, "One") ||
-        HASH_Contains(ht1, "Two") ||
-        HASH_Remove(ht1, "ONE") ||
-        !HASH_Remove(ht1, "One") ||
-        HASH_Remove(ht1, "One") ||
-        HASH_Contains(ht1, "One")) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(HASH_Put(ht1, skey = STRING_Dup("One"), HASH_INT_VALUE(1)));
+    TEST_ASSERT(HASH_Contains(ht1, skey));
+    TEST_ASSERT(HASH_Contains(ht1, "One"));
+    TEST_ASSERT(!HASH_Contains(ht1, "ONE"));
+    TEST_ASSERT(!HASH_Contains(ht1, "Two"));
+    TEST_ASSERT(HASH_Put(ht1, skey = STRING_Dup("One"), HASH_INT_VALUE(2)));
+    TEST_ASSERT(HASH_Contains(ht1, skey));
+    TEST_ASSERT(HASH_Contains(ht1, "One"));
+    TEST_ASSERT(!HASH_Contains(ht1, "Two"));
+    TEST_ASSERT(!HASH_Remove(ht1, "ONE"));
+    TEST_ASSERT(HASH_Remove(ht1, "One"));
+    TEST_ASSERT(!HASH_Remove(ht1, "One"));
+    TEST_ASSERT(!HASH_Contains(ht1, "One"));
 
     HASH_Reinit(ht1, hashCaseCompareStringKey, stringCaseHashProc,
         hashFreeKeyValueProc);
 
-    if (!HASH_Put(ht1, skey = STRING_Dup("One"), STRING_Dup("A")) ||
-        !HASH_Contains(ht1, skey) ||
-        !HASH_Contains(ht1, "One") ||
-        !HASH_Contains(ht1, "ONE") ||
-        HASH_Contains(ht1, "Two") ||
-        !HASH_Put(ht1, skey = STRING_Dup("ONE"), STRING_Dup("B")) ||
-        !HASH_Contains(ht1, skey) ||
-        !HASH_Contains(ht1, "One") ||
-        !HASH_Contains(ht1, "ONE") ||
-        HASH_Contains(ht1, "Two") ||
-        HASH_Remove(ht1, "Two") ||
-        !HASH_Remove(ht1, "One") ||
-        HASH_Remove(ht1, "One") ||
-        HASH_Remove(ht1, "ONE") ||
-        HASH_Contains(ht1, "One")) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(HASH_Put(ht1, skey = STRING_Dup("One"), STRING_Dup("A")));
+    TEST_ASSERT(HASH_Contains(ht1, skey));
+    TEST_ASSERT(HASH_Contains(ht1, "One"));
+    TEST_ASSERT(HASH_Contains(ht1, "ONE"));
+    TEST_ASSERT(!HASH_Contains(ht1, "Two"));
+    TEST_ASSERT(HASH_Put(ht1, skey = STRING_Dup("ONE"), STRING_Dup("B")));
+    TEST_ASSERT(HASH_Contains(ht1, skey));
+    TEST_ASSERT(HASH_Contains(ht1, "One"));
+    TEST_ASSERT(HASH_Contains(ht1, "ONE"));
+    TEST_ASSERT(!HASH_Contains(ht1, "Two"));
+    TEST_ASSERT(!HASH_Remove(ht1, "Two"));
+    TEST_ASSERT(HASH_Remove(ht1, "One"));
+    TEST_ASSERT(!HASH_Remove(ht1, "One"));
+    TEST_ASSERT(!HASH_Remove(ht1, "ONE"));
+    TEST_ASSERT(!HASH_Contains(ht1, "One"));
 
     HASH_Reinit(ht1, hashDefaultCompare, hashDefaultHashProc,
         hashFreeValueProc);
-    HASH_Put(ht1, HASH_INT_KEY(1), STRING_Dup("A"));
-    HASH_Put(ht1, HASH_INT_KEY(1), STRING_Dup("B"));
+    TEST_ASSERT(HASH_Put(ht1, HASH_INT_KEY(1), STRING_Dup("A")));
+    TEST_ASSERT(HASH_Put(ht1, HASH_INT_KEY(1), STRING_Dup("B")));
     HASH_Clear(ht1);
 
     HASH_Delete(ht1);
     HASH_Delete(ht2);
-    return ret;
+    return TEST_OK;
 }
 
 static
@@ -292,7 +237,6 @@ TestStatus
 test_hash_iterator(
     const TestDesc* test)
 {
-    TestStatus ret = TEST_OK;
     HashTable* ht1 = HASH_Create(0, NULL, NULL, NULL);
     HashTable* ht2 = HASH_Create(0, NULL, NULL, NULL);
     const HashEntry* entry = NULL;
@@ -309,201 +253,164 @@ test_hash_iterator(
     values = HASH_ConstValues(ht1);
     entries = HASH_ConstEntries(ht1);
   
-    if (ITR_HasNext(keys) ||
-        ITR_HasNext(values) ||
-        ITR_HasNext(entries) ||
-        !HASH_IsEmpty(ht2)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!ITR_HasNext(keys));
+    TEST_ASSERT(!ITR_HasNext(values));
+    TEST_ASSERT(!ITR_HasNext(entries));
+    TEST_ASSERT(HASH_IsEmpty(ht2));
 
     ITR_Delete(keys);
     ITR_Delete(values);
     ITR_Delete(entries);
 
     /* Fill the table (11 is the first prime index) */
-    for (i=0; i<n; i++) {
+    for (i = 0; i < n; i++) {
         HASH_Put(ht1, HASH_INT_KEY(key_off+11*i), HASH_INT_VALUE(value_off+i));
     }
 
-    if (!HASH_Copy(ht2, ht1)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(HASH_Copy(ht2, ht1));
 
     /* Read-only iterators */
     keys = HASH_ConstKeys(ht1);
     values = HASH_ConstValues(ht1);
     entries = HASH_ConstEntries(ht1);
-    for (i=0; i<n; i++) {
+    for (i = 0; i < n; i++) {
         HashKey key = NULL;
         HashValue value = NULL;
         
-        if (!ITR_HasNext(keys) ||
-            !ITR_HasNext(values) ||
-            !ITR_HasNext(entries)) {
-            ret = TEST_ERR;
-        }
+        TEST_ASSERT(ITR_HasNext(keys));
+        TEST_ASSERT(ITR_HasNext(values));
+        TEST_ASSERT(ITR_HasNext(entries));
  
-        if (!(key = ITR_Next(keys)) ||
-            !(value = ITR_Next(values)) ||
-            !(entry = ITR_Next(entries))) {
-            ret = TEST_ERR;
-        }
+        TEST_ASSERT((key = ITR_Next(keys)) != NULL);
+        TEST_ASSERT((value = ITR_Next(values)) != NULL);
+        TEST_ASSERT((entry = ITR_Next(entries)) != NULL);
 
-        if (entry->key != key ||
-            entry->value != value) {
-            ret = TEST_ERR;
-        }
+        TEST_ASSERT(entry->key == key);
+        TEST_ASSERT(entry->value == value);
 
-        if (HASH_Get(ht2, key) != value ||
-            !HASH_Remove(ht2, key)) {
-            ret = TEST_ERR;
-        }
+        TEST_ASSERT(HASH_Get(ht2, key) == value);
+        TEST_ASSERT(HASH_Remove(ht2, key));
 
-        if (ITR_Remove(keys) ||
-            ITR_Remove(values) ||
-            ITR_Remove(entries)) {
-            ret = TEST_ERR;
-        }
+        TEST_ASSERT(!ITR_Remove(keys));
+        TEST_ASSERT(!ITR_Remove(values));
+        TEST_ASSERT(!ITR_Remove(entries));
     }
 
-    if (ITR_HasNext(keys) ||
-        ITR_HasNext(values) ||
-        ITR_HasNext(entries) ||
-        !HASH_IsEmpty(ht2)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!ITR_HasNext(keys));
+    TEST_ASSERT(!ITR_HasNext(values));
+    TEST_ASSERT(!ITR_HasNext(entries));
+    TEST_ASSERT(HASH_IsEmpty(ht2));
 
     ITR_Delete(keys);
     ITR_Delete(values);
     ITR_Delete(entries);
 
     /* Iterators with remove */
-    if (!HASH_Copy(ht2, ht1)) {
-        ret = TEST_ERR;
-    }
-
+    TEST_ASSERT(HASH_Copy(ht2, ht1));
     keys = HASH_Keys(ht1);
-    for (i=0; i<n; i++) {
+    TEST_ASSERT(keys);
+    for (i = 0; i < n; i++) {
         HashKey key;
-        if (!ITR_HasNext(keys) ||
-            !(key = ITR_Next(keys)) ||
-            !HASH_Remove(ht2, key) ||
-            !ITR_Remove(keys) ||
-            ITR_Remove(keys)) {
-            ret = TEST_ERR;
-        }
+
+        TEST_ASSERT(ITR_HasNext(keys));
+        key = ITR_Next(keys);
+        TEST_ASSERT(key);
+        TEST_ASSERT(HASH_Remove(ht2, key));
+        TEST_ASSERT(ITR_Remove(keys));
+        TEST_ASSERT(!ITR_Remove(keys));
     }
 
-    if (ITR_HasNext(keys) ||
-        !HASH_IsEmpty(ht1) ||
-        !HASH_IsEmpty(ht2)) {
-        ret = TEST_ERR;
-    }
-
+    TEST_ASSERT(!ITR_HasNext(keys));
+    TEST_ASSERT(HASH_IsEmpty(ht1));
+    TEST_ASSERT(HASH_IsEmpty(ht2));
     ITR_Delete(keys);
 
-    for (i=0; i<n; i++) {
+    for (i = 0; i < n; i++) {
         HASH_Put(ht1, HASH_INT_KEY(key_off+i), HASH_INT_VALUE(value_off+i));
         HASH_Put(ht2, HASH_INT_KEY(value_off+i), HASH_INT_VALUE(key_off+i));
     }
 
     values = HASH_Values(ht1);
-    for (i=0; i<n; i++) {
+    TEST_ASSERT(values);
+    for (i = 0; i < n; i++) {
         HashValue value;
-        if (!ITR_HasNext(values) ||
-            !(value = ITR_Next(values)) ||
-            !HASH_Remove(ht2, value) ||
-            !ITR_Remove(values) ||
-            ITR_Remove(values)) {
-            ret = TEST_ERR;
-        }
+
+        TEST_ASSERT(ITR_HasNext(values));
+        value = ITR_Next(values);
+        TEST_ASSERT(value);
+        TEST_ASSERT(HASH_Remove(ht2, value));
+        TEST_ASSERT(ITR_Remove(values));
+        TEST_ASSERT(!ITR_Remove(values));
     }
 
-    if (ITR_HasNext(values) ||
-        !HASH_IsEmpty(ht1) ||
-        !HASH_IsEmpty(ht2)) {
-        ret = TEST_ERR;
-    }
-
+    TEST_ASSERT(!ITR_HasNext(values));
+    TEST_ASSERT(HASH_IsEmpty(ht1));
+    TEST_ASSERT(HASH_IsEmpty(ht2));
     ITR_Delete(values);
 
-    for (i=0; i<n; i++) {
+    for (i = 0; i < n; i++) {
         HASH_Put(ht1, HASH_INT_KEY(key_off+11*i), HASH_INT_VALUE(value_off+i));
     }
 
-    if (!HASH_Copy(ht2, ht1)) {
-        ret = TEST_ERR;
-    }
-
+    TEST_ASSERT(HASH_Copy(ht2, ht1));
     entries = HASH_Entries(ht1);
-    for (i=0; i<n; i++) {
-        if (!ITR_HasNext(entries) ||
-            !(entry = ITR_Next(entries)) ||
-            HASH_Get(ht2, entry->key) != entry->value ||
-            !HASH_Remove(ht2, entry->key)) {
-            ret = TEST_ERR;
-        }
+    TEST_ASSERT(entries);
+    for (i = 0; i < n; i++) {
+        TEST_ASSERT(ITR_HasNext(entries));
+        entry = ITR_Next(entries);
+        TEST_ASSERT(entry);
+        TEST_ASSERT(HASH_Get(ht2, entry->key) == entry->value);
+        TEST_ASSERT(HASH_Remove(ht2, entry->key));
+
         /* Remove every other entry */
-        if (!(i%2)) {
-            if (!ITR_Remove(entries) ||
-                ITR_Remove(entries)) {
-                ret = TEST_ERR;
-            }
+        if (!(i % 2)) {
+            TEST_ASSERT(ITR_Remove(entries));
+            TEST_ASSERT(!ITR_Remove(entries));
         }
     }
 
-    if (ITR_HasNext(entries) ||
-        HASH_Size(ht1) != n/2 ||
-        !HASH_IsEmpty(ht2)) {
-        ret = TEST_ERR;
-    }
-
+    TEST_ASSERT(!ITR_HasNext(entries));
+    TEST_ASSERT(HASH_Size(ht1) == n/2);
+    TEST_ASSERT(HASH_IsEmpty(ht2));
     ITR_Delete(entries);
     HASH_Clear(ht1);
 
     /* Concurrent modification */
-    for (i=0; i<n; i++) {
-        HASH_Put(ht1, HASH_INT_KEY(11*i), HASH_INT_VALUE(i));
+    for (i = 0; i < n; i++) {
+        TEST_ASSERT(HASH_Put(ht1, HASH_INT_KEY(11*i), HASH_INT_VALUE(i)));
     }
     entries = HASH_Entries(ht1);
-    if (!ITR_HasNext(entries) ||
-        !(entry = ITR_Next(entries))) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(entries);
+    TEST_ASSERT(ITR_HasNext(entries));
+    TEST_ASSERT(ITR_Next(entries));
     HASH_Clear(ht1);
     /* HASH_ItrRemove should detect concurrent modification and fail */
-    if (ITR_Remove(entries) ||
-        ITR_HasNext(entries)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!ITR_Remove(entries));
+    TEST_ASSERT(!ITR_HasNext(entries));
     ITR_Delete(entries);
 
     /* Again, only removing all but one element */
-    for (i=0; i<n; i++) {
-        HASH_Put(ht1, HASH_INT_KEY(11*i), HASH_INT_VALUE(i));
+    for (i = 0; i < n; i++) {
+        TEST_ASSERT(HASH_Put(ht1, HASH_INT_KEY(11*i), HASH_INT_VALUE(i)));
     }
     entries = HASH_Entries(ht1);
     keys = HASH_Keys(ht1);
-    if (!ITR_Next(keys) ||
-        !ITR_Next(entries) ||
-        !(entry = ITR_Next(entries))) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(entries);
+    TEST_ASSERT(keys);
+    TEST_ASSERT(ITR_Next(keys));
+    TEST_ASSERT(ITR_Next(entries));
+    TEST_ASSERT(ITR_Next(entries));
     while (ITR_Next(keys)) {
-        if (!ITR_Remove(keys)) {
-            ret = TEST_ERR;
-        }
+        TEST_ASSERT(ITR_Remove(keys));
     }
-    if (ITR_Remove(entries) ||
-        ITR_HasNext(entries)) {
-        ret = TEST_ERR;
-    }
+    TEST_ASSERT(!ITR_Remove(entries));
+    TEST_ASSERT(!ITR_HasNext(entries));
     ITR_Delete(entries);
     ITR_Delete(keys);
 
     HASH_Delete(ht1);
     HASH_Delete(ht2);
-    return ret;
+    return TEST_OK;
 }
 
 static
@@ -513,13 +420,14 @@ test_hash_pool_thread(
 {
     HashTable* ht = HASH_Create(0, NULL, NULL, NULL);
     int i;
+
     /* Fill the thread local pool */
-    for (i=0; i<150; i++) {
-        HASH_Put(ht, HASH_INT_KEY(i), HASH_INT_VALUE(i));
+    for (i = 0; i < 150; i++) {
+        TEST_ASSERT(HASH_Put(ht, HASH_INT_KEY(i), HASH_INT_VALUE(i)));
     }
     HASH_Clear(ht);
-    for (i=0; i<10; i++) {
-        HASH_Put(ht, HASH_INT_KEY(i), HASH_INT_VALUE(i));
+    for (i = 0; i < 10; i++) {
+        TEST_ASSERT(HASH_Put(ht, HASH_INT_KEY(i), HASH_INT_VALUE(i)));
     }
     HASH_Delete(ht);
 }
@@ -529,13 +437,12 @@ TestStatus
 test_hash_pool(
     const TestDesc* test)
 {
-    TestStatus ret = TEST_OK;
     ThrID tid = THR_NONE;
-    if (!THREAD_Create(&tid, test_hash_pool_thread, &ret) ||
-        !THREAD_Join(tid)) {
-        ret = TEST_ERR;
-    }
-    return ret;
+
+    TEST_ASSERT(THREAD_Create(&tid, test_hash_pool_thread, NULL));
+    TEST_ASSERT(tid != THR_NONE);
+    TEST_ASSERT(THREAD_Join(tid));
+    return TEST_OK;
 }
 
 int
