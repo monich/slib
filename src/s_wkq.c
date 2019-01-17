@@ -1,7 +1,7 @@
 /*
- * $Id: s_wkq.c,v 1.21 2015/08/16 16:07:33 slava Exp $
+ * $Id: s_wkq.c,v 1.22 2019/01/17 11:11:35 slava Exp $
  *
- * Copyright (C) 2001-2015 by Slava Monich
+ * Copyright (C) 2001-2019 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -97,39 +97,48 @@ typedef struct _WorkQueueModule {
  *              G L O B A L    C O N T E X T
  *==========================================================================*/
 
-STATIC WorkQueueModule WKQ = {0};
+STATIC WorkQueueModule WKQmodule = {0};
+
+STATIC Bool WKQ_Init(WorkQueueModule * module)
+{
+    module->maxwait = DEFAULT_MAX_WAIT_POOL;
+    module->maxitems = DEFAULT_MAX_ITEM_POOL;
+    QUEUE_Init(&module->itempool);
+    return MUTEX_Init(&module->mutex);
+}
 
 void WKQ_InitModule()
 {
-    if ((WKQ.initcount++) == 0) {
+    if ((WKQmodule.initcount++) == 0) {
         THREAD_InitModule();
-        QUEUE_Init(&WKQ.itempool);
-        if (MUTEX_Init(&WKQ.mutex)) {
-            WKQ.maxwait = DEFAULT_MAX_WAIT_POOL;
-            WKQ.maxitems = DEFAULT_MAX_ITEM_POOL;
-            return;
+        if (!WKQ_Init(&WKQmodule)) {
+            SLIB_Abort(TEXT("WKQ"));
         }
-        SLIB_Abort(TEXT("WKQ"));
     }
+}
+
+STATIC void WKQ_Deinit(WorkQueueModule * module)
+{
+    while (module->waitpool) {
+        Waiter * next = module->waitpool->next;
+        EVENT_Destroy(&module->waitpool->event);
+        MEM_Free(module->waitpool);
+        module->waitpool = next;
+        module->nwait--;
+    }
+    ASSERT(module->nwait == 0);
+    while (!QUEUE_IsEmpty(&module->itempool)) {
+        QEntry * e = QUEUE_RemoveHead(&module->itempool);
+        WorkItem * w = QCAST(e,WorkItem,itemsQ);
+        MEM_Free(w);
+    }
+    MUTEX_Destroy(&module->mutex);
 }
 
 void WKQ_Shutdown()
 {
-    if ((--WKQ.initcount) == 0) {
-        while (WKQ.waitpool) {
-            Waiter * next = WKQ.waitpool->next;
-            EVENT_Destroy(&WKQ.waitpool->event);
-            MEM_Free(WKQ.waitpool);
-            WKQ.waitpool = next;
-            WKQ.nwait--;
-        }
-        ASSERT(WKQ.nwait == 0);
-        while (!QUEUE_IsEmpty(&WKQ.itempool)) {
-            QEntry * e = QUEUE_RemoveHead(&WKQ.itempool);
-            WorkItem * w = QCAST(e,WorkItem,itemsQ);
-            MEM_Free(w);
-        }
-        MUTEX_Destroy(&WKQ.mutex);
+    if ((--WKQmodule.initcount) == 0) {
+        WKQ_Deinit(&WKQmodule);
         THREAD_Shutdown();
     }
 }
@@ -343,9 +352,9 @@ STATIC WorkQueue * WKI_GetQueue(WorkItem * w)
  */
 WorkItem * WKI_Create(WorkQueue * q, WorkProc cb, void * par)
 {
-    ASSERT(WKQ.initcount > 0);
-    if (WKQ.initcount == 0) WKQ_InitModule();
-    return WKQ_GetWorkItem(&WKQ, q, cb, NULL, par, NULL);
+    ASSERT(WKQmodule.initcount > 0);
+    if (WKQmodule.initcount == 0) WKQ_InitModule();
+    return WKQ_GetWorkItem(&WKQmodule, q, cb, NULL, par, NULL);
 }
 
 /**
@@ -354,9 +363,9 @@ WorkItem * WKI_Create(WorkQueue * q, WorkProc cb, void * par)
  */
 WorkItem * WKI_Create2 (WorkQueue * q, WorkProc2 cb, void * p1, void * p2)
 {
-    ASSERT(WKQ.initcount > 0);
-    if (WKQ.initcount == 0) WKQ_InitModule();
-    return WKQ_GetWorkItem(&WKQ, q, WKI_WorkProc2, cb, p1, p2);
+    ASSERT(WKQmodule.initcount > 0);
+    if (WKQmodule.initcount == 0) WKQ_InitModule();
+    return WKQ_GetWorkItem(&WKQmodule, q, WKI_WorkProc2, cb, p1, p2);
 }
 
 /**
@@ -413,7 +422,7 @@ void WKI_Detach(WorkItem * w)
     w->flags |= WKI_DETACHED;
     if (!w->submitQ.queue && !(w->flags & WKI_CALL)) {
         QUEUE_RemoveEntry(&w->itemsQ);
-        WKQ_ReleaseWorkItem(&WKQ, w);
+        WKQ_ReleaseWorkItem(&WKQmodule, w);
     }
     MUTEX_Unlock(&q->mutex);
 }
@@ -443,7 +452,7 @@ STATIC Waiter * WKI_AttachWaiter(WorkItem * w)
          * segment (which does not seem to be the case). Anyway, I decided
          * to play it safe and follow the documentation.
          */
-        waiter = WKQ_GetWaiter(&WKQ);
+        waiter = WKQ_GetWaiter(&WKQmodule);
         if (waiter) {
             Bool waitable = False;
             MUTEX_Lock(&q->mutex);
@@ -460,7 +469,7 @@ STATIC Waiter * WKI_AttachWaiter(WorkItem * w)
                  * waiter. Return it to the pool. In real life, this almost
                  * never happens.
                  */
-                WKQ_ReleaseWaiter(&WKQ, waiter);
+                WKQ_ReleaseWaiter(&WKQmodule, waiter);
                 waiter = NULL;
             }
         }
@@ -476,7 +485,7 @@ void WKI_Wait(WorkItem * w)
     Waiter * waiter = WKI_AttachWaiter(w);
     if (waiter) {
         EVENT_Wait(&waiter->event);
-        WKQ_ReleaseWaiter(&WKQ, waiter);
+        WKQ_ReleaseWaiter(&WKQmodule, waiter);
     }
 }
 
@@ -489,7 +498,7 @@ WaitState WKI_TimeWait(WorkItem * w, long ms)
     Waiter * waiter = WKI_AttachWaiter(w);
     if (waiter) {
         result = EVENT_TimeWait(&waiter->event,ms);
-        WKQ_ReleaseWaiter(&WKQ, waiter);
+        WKQ_ReleaseWaiter(&WKQmodule, waiter);
     }
     return result;
 }
@@ -590,7 +599,7 @@ STATIC void WKQ_Thread(void * par)
                     /* put the work item to the pool or deallocate it */
                     ASSERT(!w->waiters);
                     QUEUE_RemoveEntry(&w->itemsQ);
-                    WKQ_ReleaseWorkItem(&WKQ, w);
+                    WKQ_ReleaseWorkItem(&WKQmodule, w);
 
                 } else {
 
@@ -697,8 +706,8 @@ WorkQueue * WKQ_CreatePool(int n)
     size_t size = sizeof(WorkQueue) + sizeof(ThrID)*(MAX(n,1)-1);
     WorkQueue * q = MEM_Alloc(size);
     if (q) {
-        ASSERT(WKQ.initcount > 0);
-        if (WKQ.initcount == 0) WKQ_InitModule();
+        ASSERT(WKQmodule.initcount > 0);
+        if (WKQmodule.initcount == 0) WKQ_InitModule();
         memset(q, 0, size);
         q->nthreads = n;
         if (MUTEX_Init(&q->mutex)) {
@@ -907,7 +916,7 @@ void WKQ_Cancel(WorkQueue * q)
             if (w->flags & WKI_DETACHED) {
                 ASSERT(!w->waiters);
                 QUEUE_RemoveEntry(&w->itemsQ);
-                WKQ_ReleaseWorkItem(&WKQ, w);
+                WKQ_ReleaseWorkItem(&WKQmodule, w);
             } else {
                 WKI_Signal(w);
             }
@@ -937,6 +946,9 @@ WaitState WKQ_TimeWait(WorkQueue * q, long ms)
  * HISTORY:
  *
  * $Log: s_wkq.c,v $
+ * Revision 1.22  2019/01/17 11:11:35  slava
+ * o use longer name for global variable (WKQ -> WKQmodule)
+ *
  * Revision 1.21  2015/08/16 16:07:33  slava
  * o housekeeping
  *
