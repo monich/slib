@@ -8,6 +8,7 @@ test_base32 \
 test_base64 \
 test_bitset \
 test_buf \
+test_fnull \
 test_fmem \
 test_hash \
 test_itr \
