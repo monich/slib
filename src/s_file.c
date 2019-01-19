@@ -1,7 +1,7 @@
 /*
- * $Id: s_file.c,v 1.61 2015/08/16 16:07:31 slava Exp $
+ * $Id: s_file.c,v 1.62 2019/01/19 01:14:50 slava Exp $
  *
- * Copyright (C) 2000-2015 by Slava Monich
+ * Copyright (C) 2000-2019 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -752,8 +752,7 @@ void FILE_Close(File * f)
     if (f) {
         FileFree ff = f->io->free;
         FILE_Finish(f);
-        MEM_Free(f->name);
-        STRBUF_Destroy(&f->buf);
+        FILE_Destroy(f);
         (*ff)(f);
     }
 }
@@ -1000,6 +999,9 @@ void FILE_Dump(File* out, const void* buf, size_t off, size_t len, size_t max)
  * HISTORY:
  *
  * $Log: s_file.c,v $
+ * Revision 1.62  2019/01/19 01:14:50  slava
+ * o call FILE_Destroy() from FILE_Close()
+ *
  * Revision 1.61  2015/08/16 16:07:31  slava
  * o housekeeping
  *
