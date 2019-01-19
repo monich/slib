@@ -1,7 +1,7 @@
 /*
- * $Id: test_fmem.c,v 1.3 2018/12/27 23:44:41 slava Exp $
+ * $Id: test_fmem.c,v 1.4 2019/01/19 01:17:20 slava Exp $
  *
- * Copyright (C) 2016-2018 by Slava Monich
+ * Copyright (C) 2016-2019 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -92,6 +92,21 @@ test_fmem_alloc(
 
 static
 TestStatus
+test_fmem_basic(
+    const TestDesc* test)
+{
+    File* null = FILE_Null();
+
+    TEST_ASSERT(null);
+    TEST_ASSERT(!FILE_IsMem(null));
+    TEST_ASSERT(!FILE_MemSize(null));
+    TEST_ASSERT(!FILE_MemData(null));
+    FILE_Close(null);
+    return TEST_OK;
+}
+
+static
+TestStatus
 test_fmem_read(
     const TestDesc* test)
 {
@@ -120,10 +135,15 @@ test_fmem_read(
 
     f = FILE_MemIn(data, sizeof(data));
     TEST_ASSERT(f);
+    TEST_ASSERT(!FILE_Eof(f));
     TEST_ASSERT(FILE_Skip(f, skip) == (size_t)skip);
     TEST_ASSERT(FILE_ReadData(f, buf, -1) == (int)(sizeof(data)-skip));
     TEST_ASSERT(BUFFER_Size(buf) == sizeof(data)-skip);
     TEST_ASSERT(!memcmp(BUFFER_Access(buf), data + skip, sizeof(data)-skip));
+
+    /* No more data to read */
+    TEST_ASSERT(FILE_Eof(f));
+    TEST_ASSERT(!FILE_Skip(f, 1));
 
     BUFFER_Delete(buf);
     FILE_Close(f);
@@ -160,6 +180,7 @@ main(int argc, char* argv[])
 {
     static const TestDesc tests[] = {
         {"Alloc", test_fmem_alloc},
+        {"Basic", test_fmem_basic},
         {"Read", test_fmem_read},
         {"Write", test_fmem_write}
     };
