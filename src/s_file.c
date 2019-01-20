@@ -1,5 +1,5 @@
 /*
- * $Id: s_file.c,v 1.62 2019/01/19 01:14:50 slava Exp $
+ * $Id: s_file.c,v 1.63 2019/01/20 17:18:40 slava Exp $
  *
  * Copyright (C) 2000-2019 by Slava Monich
  *
@@ -363,12 +363,10 @@ size_t FILE_Skip(File * f, size_t skip)
                 }
             }
 
-            if (skip > 0) {
-                n = f->io->skip(f, (int)skip);
-                if (n > 0) {
-                    f->bytesRead += n;
-                    count += n;
-                }
+            n = f->io->skip(f, (int)skip);
+            if (n > 0) {
+                f->bytesRead += n;
+                count += n;
             }
 
         } else {
@@ -999,6 +997,9 @@ void FILE_Dump(File* out, const void* buf, size_t off, size_t len, size_t max)
  * HISTORY:
  *
  * $Log: s_file.c,v $
+ * Revision 1.63  2019/01/20 17:18:40  slava
+ * o removed unnecessary comparison from FILE_Skip
+ *
  * Revision 1.62  2019/01/19 01:14:50  slava
  * o call FILE_Destroy() from FILE_Close()
  *
