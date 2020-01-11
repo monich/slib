@@ -1,6 +1,6 @@
 # -*- Mode: makefile-gmake -*-
 #
-# $Id: Makefile,v 1.86 2020/01/11 19:46:03 slava Exp $
+# $Id: Makefile,v 1.87 2020/01/11 21:42:07 slava Exp $
 #
 # Makefile for libslava.a
 #
@@ -10,12 +10,15 @@
 # modification, are permitted provided that the following conditions 
 # are met: 
 #
-#   1.Redistributions of source code must retain the above copyright 
-#     notice, this list of conditions and the following disclaimer. 
-#   2.Redistributions in binary form must reproduce the above copyright 
-#     notice, this list of conditions and the following disclaimer 
-#     in the documentation and/or other materials provided with the 
-#     distribution. 
+#   1. Redistributions of source code must retain the above copyright 
+#      notice, this list of conditions and the following disclaimer. 
+#   2. Redistributions in binary form must reproduce the above copyright 
+#      notice, this list of conditions and the following disclaimer 
+#      in the documentation and/or other materials provided with the 
+#      distribution. 
+#   3. Neither the names of the copyright holders nor the names of its
+#      contributors may be used to endorse or promote products derived
+#      from this software without specific prior written permission.
 #
 # THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
 # WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES 
@@ -55,15 +58,6 @@ WARNINGS = -Wall -Wstrict-prototypes -Wshadow -Wwrite-strings \
 CPPFLAGS = $(INCLUDES) $(DEFINES)
 CFLAGS = $(WARNINGS) -fno-strict-aliasing -fPIC -MMD -MP
 ARFLAGS = rc
-
-ifndef GCOV
-GCOV = 0
-endif
-
-ifneq ($(GCOV),0)
-CFLAGS += --coverage
-SUBMAKE_OPTS += GCOV=1
-endif
 
 DEBUG_CFLAGS = $(DEBUG_FLAGS) $(CFLAGS) $(CPPFLAGS) $(DEBUG_DEFINES)
 RELEASE_CFLAGS = $(RELEASE_FLAGS) $(CFLAGS) $(CPPFLAGS)
@@ -422,6 +416,9 @@ $(INSTALL_PKGCONFIG_DIR):
 
 #
 # $Log: Makefile,v $
+# Revision 1.87  2020/01/11 21:42:07  slava
+# o removed unnecessary GCOV stuff
+#
 # Revision 1.86  2020/01/11 19:46:03  slava
 # o rpm packaging
 #
