@@ -31,4 +31,4 @@ make install DESTDIR=%{buildroot} LIBDIR=%{_libdir}
 %defattr(-,root,root,-)
 %{_libdir}/libslava*.a
 %{_libdir}/pkgconfig/*.pc
-%{_includedir}/slib/*.h
+%{_includedir}/slib
