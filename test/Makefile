@@ -9,6 +9,7 @@ all:
 	$(call RUN_MAKE,-C test_bitset $*)
 	$(call RUN_MAKE,-C test_buf $*)
 	$(call RUN_MAKE,-C test_fmem $*)
+	$(call RUN_MAKE,-C test_fnull $*)
 	$(call RUN_MAKE,-C test_hash $*)
 	$(call RUN_MAKE,-C test_itr $*)
 	$(call RUN_MAKE,-C test_math $*)
