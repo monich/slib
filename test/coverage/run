@@ -30,12 +30,12 @@ function err() {
     exit 1
 }
 
-# Chec required tools
+# Check required tools
 which lcov >> /dev/null || err "Please install lcov"
 which dirname >> /dev/null || err "Please install dirname"
 which realpath >> /dev/null || err "Please install realpath"
 
-# LCOV 1.10 has branch coverage disabled per default
+# LCOV 1.10 has branch coverage disabled by default
 # Previous versions didn't have the --rc option
 if  [ ! -z "$(lcov --help | grep ' --rc ')" ] ; then
     LCOV_OPT="--rc lcov_branch_coverage=1"
