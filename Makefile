@@ -1,10 +1,10 @@
 # -*- Mode: makefile-gmake -*-
 #
-# $Id: Makefile,v 1.84 2018/07/28 15:39:24 slava Exp $
+# $Id: Makefile,v 1.85 2020/01/11 17:08:27 slava Exp $
 #
 # Makefile for libslava.a
 #
-# Copyright (C) 2000-2018 by Slava Monich
+# Copyright (C) 2000-2020 by Slava Monich
 #
 # Redistribution and use in source and binary forms, with or without 
 # modification, are permitted provided that the following conditions 
@@ -293,6 +293,9 @@ profile: $(PROFILE_BUILD_DIR) $(PROFILE_LIB)
 
 coverage: $(COVERAGE_BUILD_DIR) $(COVERAGE_BUILD_DIR)/$(COVERAGE_LIB)
 
+check:
+	@$(SUBMAKE) -C test test
+
 clean:
 	@$(SUBMAKE) -C test clean
 	$(call RUN,rm -fr core *~ */*~ libslava*.a $(BUILD_DIR))
@@ -416,6 +419,9 @@ $(INSTALL_PKGCONFIG_DIR):
 
 #
 # $Log: Makefile,v $
+# Revision 1.85  2020/01/11 17:08:27  slava
+# o added check target
+#
 # Revision 1.84  2018/07/28 15:39:24  slava
 # o added separate coverage target. It's not very convenient when the
 #   same object files can be built with different flags. Better keep
