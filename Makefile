@@ -1,6 +1,6 @@
 # -*- Mode: makefile-gmake -*-
 #
-# $Id: Makefile,v 1.85 2020/01/11 17:08:27 slava Exp $
+# $Id: Makefile,v 1.86 2020/01/11 19:46:03 slava Exp $
 #
 # Makefile for libslava.a
 #
@@ -32,7 +32,7 @@
 # any official policies, either expressed or implied.
 #
 
-.PHONY: clean distclean all debug release profile coverage
+.PHONY: clean distclean all debug release profile coverage pkgconfig check
 
 DEBUG_NAME = libslavad
 RELEASE_NAME = libslava
@@ -101,7 +101,7 @@ VERSION=$(shell scripts/version)
 # Default target
 #
 
-all: debug release
+all: debug release pkgconfig
 
 #
 # OS specific stuff
@@ -235,6 +235,7 @@ DEBUG_BUILD_DIR = $(BUILD_DIR)/debug
 RELEASE_BUILD_DIR = $(BUILD_DIR)/release
 PROFILE_BUILD_DIR = $(RELEASE_BUILD_DIR)/profile
 COVERAGE_BUILD_DIR = $(BUILD_DIR)/coverage
+LIBDIR ?= /usr/lib
 
 #
 # Files
@@ -307,6 +308,8 @@ clean:
 distclean: clean
 	rm -fr test/coverage/*.gcov test/coverage/report
 
+pkgconfig: $(PKGCONFIG)
+
 $(DEBUG_BUILD_DIR):
 	$(call RUN_MKDIR,$@)
 
@@ -360,7 +363,7 @@ endif
 #
 
 $(BUILD_DIR)/%.pc: %.pc.in
-	$(call RUN,sed -e 's/\[version\]/'$(VERSION)/g $< > $@)
+	$(call RUN,sed -e 's/\[version\]/'$(VERSION)/g -e 's/\[libdir\]/'`echo $(LIBDIR) | sed 's/\\//\\\\\\//g'`/g $< > $@)
 
 $(DEBUG_BUILD_DIR)/%.o : $(SRC_DIR)/%.c
 	$(call CC_DEBUG,$<,$@)
@@ -398,9 +401,9 @@ INSTALL = install
 INSTALL_DIRS = $(INSTALL) -d
 INSTALL_FILES = $(INSTALL) -m $(INSTALL_PERM)
 
-INSTALL_LIB_DIR = $(DESTDIR)/usr/lib
+INSTALL_LIB_DIR = $(DESTDIR)$(LIBDIR)
 INSTALL_INCLUDE_DIR = $(DESTDIR)/usr/include/slib
-INSTALL_PKGCONFIG_DIR = $(DESTDIR)/usr/lib/pkgconfig
+INSTALL_PKGCONFIG_DIR = $(DESTDIR)/$(LIBDIR)/pkgconfig
 
 install: $(PKGCONFIG) $(INSTALL_LIB_DIR) $(INSTALL_INCLUDE_DIR) $(INSTALL_PKGCONFIG_DIR)
 	$(INSTALL_FILES) $(DEBUG_LIB) $(RELEASE_LIB) $(INSTALL_LIB_DIR)
@@ -419,6 +422,9 @@ $(INSTALL_PKGCONFIG_DIR):
 
 #
 # $Log: Makefile,v $
+# Revision 1.86  2020/01/11 19:46:03  slava
+# o rpm packaging
+#
 # Revision 1.85  2020/01/11 17:08:27  slava
 # o added check target
 #
