@@ -8,8 +8,8 @@ test_base32 \
 test_base64 \
 test_bitset \
 test_buf \
-test_fnull \
 test_fmem \
+test_fnull \
 test_hash \
 test_itr \
 test_math \
@@ -17,11 +17,11 @@ test_md \
 test_mfp \
 test_mpm \
 test_parse \
+test_queue \
 test_ring \
 test_stack \
 test_str \
 test_strbuf \
-test_queue \
 test_utf8 \
 test_vector"
 
