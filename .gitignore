@@ -17,4 +17,8 @@ slibwd.lib
 .svn
 .cvsignore
 CVS
+debian/files
+debian/libslava-dev.debhelper.log
+debian/libslava-dev.substvars
+debian/libslava-dev
 test/coverage/report
