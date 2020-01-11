@@ -1,7 +1,7 @@
 /*
- * $Id: test_parse.c,v 1.2 2016/10/02 22:55:23 slava Exp $
+ * $Id: test_parse.c,v 1.3 2020/01/11 18:21:35 slava Exp $
  *
- * Copyright (C) 2016 by Slava Monich
+ * Copyright (C) 2016-2020 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -55,32 +55,23 @@ test_parse_bool(
         { T_(" False "), TEST_BOOL_RESULT_FALSE },
     };
 
-    TestStatus ret = TEST_OK;
     int i;
     for (i=0; i<COUNT(tests); i++) {
         Bool b;
         Str str = tests[i].str;
         const int flags = tests[i].flags;
         if (PARSE_Bool(str, &b)) {
-            if (!PARSE_Bool(str, NULL)) {
-                ret = TEST_ERR;
-            }
+            TEST_ASSERT(PARSE_Bool(str, NULL));
             if (b) {
-                if (!(flags & TEST_BOOL_RESULT_TRUE)) {
-                    ret = TEST_ERR;
-                }
+                TEST_ASSERT(flags & TEST_BOOL_RESULT_TRUE);
             } else {
-                if (!(flags & TEST_BOOL_RESULT_FALSE)) {
-                    ret = TEST_ERR;
-                }
+                TEST_ASSERT(flags & TEST_BOOL_RESULT_FALSE);
             }
         } else {
-            if (flags & TEST_BOOL_RESULT_ANY) {
-                ret = TEST_ERR;
-            }
+            TEST_ASSERT(!(flags & TEST_BOOL_RESULT_ANY));
         }
     }
-    return ret;
+    return TEST_OK;
 }
 
 static
@@ -108,25 +99,20 @@ test_parse_i8(
         { T_("0x1f"), 10, False }
     };
 
-    TestStatus ret = TEST_OK;
     int i;
     for (i=0; i<COUNT(tests); i++) {
         I8s x;
         const int base = tests[i].base;
         Str str = tests[i].str;
         if (PARSE_I8(str, &x, base)) {
-            if (!PARSE_I8(str, NULL, base) ||
-                !tests[i].ok ||
-                x != tests[i].result) {
-                Error("%s\n", str);
-                ret = TEST_ERR;
-            }
-        } else if (tests[i].ok) {
-            Error("%s\n", str);
-            ret = TEST_ERR;
+            TEST_ASSERT(PARSE_I8(str, NULL, base));
+            TEST_ASSERT(tests[i].result == x);
+            TEST_ASSERT(tests[i].ok);
+        } else {
+            TEST_ASSERT(!tests[i].ok);
         }
     }
-    return ret;
+    return TEST_OK;
 }
 
 static
@@ -155,25 +141,20 @@ test_parse_u8(
         { T_("0x1f"), 10, False }
     };
 
-    TestStatus ret = TEST_OK;
     int i;
     for (i=0; i<COUNT(tests); i++) {
         I8u x;
         const int base = tests[i].base;
         Str str = tests[i].str;
         if (PARSE_U8(str, &x, base)) {
-            if (!PARSE_U8(str, NULL, base) ||
-                !tests[i].ok ||
-                x != tests[i].result) {
-                Error("%s\n", str);
-                ret = TEST_ERR;
-            }
-        } else if (tests[i].ok) {
-            Error("%s\n", str);
-            ret = TEST_ERR;
+            TEST_ASSERT(PARSE_U8(str, NULL, base));
+            TEST_ASSERT(tests[i].result == x);
+            TEST_ASSERT(tests[i].ok);
+        } else {
+            TEST_ASSERT(!tests[i].ok);
         }
     }
-    return ret;
+    return TEST_OK;
 }
 
 static
@@ -199,25 +180,20 @@ test_parse_i16(
         { T_("-32768"), 10, True, -32768 }
     };
 
-    TestStatus ret = TEST_OK;
     int i;
     for (i=0; i<COUNT(tests); i++) {
         I16s x;
         const int base = tests[i].base;
         Str str = tests[i].str;
         if (PARSE_I16(str, &x, base)) {
-            if (!PARSE_I16(str, NULL, base) ||
-                !tests[i].ok ||
-                x != tests[i].result) {
-                Error("%s\n", str);
-                ret = TEST_ERR;
-            }
-        } else if (tests[i].ok) {
-            Error("%s\n", str);
-            ret = TEST_ERR;
+            TEST_ASSERT(PARSE_I16(str, NULL, base));
+            TEST_ASSERT(tests[i].result == x);
+            TEST_ASSERT(tests[i].ok);
+        } else {
+            TEST_ASSERT(!tests[i].ok);
         }
     }
-    return ret;
+    return TEST_OK;
 }
 
 static
@@ -243,25 +219,20 @@ test_parse_u16(
         { T_("-32768"), 10, False }
     };
 
-    TestStatus ret = TEST_OK;
     int i;
     for (i=0; i<COUNT(tests); i++) {
         I16u x;
         const int base = tests[i].base;
         Str str = tests[i].str;
         if (PARSE_U16(str, &x, base)) {
-            if (!PARSE_U16(str, NULL, base) ||
-                !tests[i].ok ||
-                x != tests[i].result) {
-                Error("%s\n", str);
-                ret = TEST_ERR;
-            }
-        } else if (tests[i].ok) {
-            Error("%s\n", str);
-            ret = TEST_ERR;
+            TEST_ASSERT(PARSE_U16(str, NULL, base));
+            TEST_ASSERT(tests[i].result == x);
+            TEST_ASSERT(tests[i].ok);
+        } else {
+            TEST_ASSERT(!tests[i].ok);
         }
     }
-    return ret;
+    return TEST_OK;
 }
 
 static
@@ -290,25 +261,20 @@ test_parse_i32(
         { T_("-1"), 10, True, 0xffffffff },
     };
 
-    TestStatus ret = TEST_OK;
     int i;
     for (i=0; i<COUNT(tests); i++) {
         I32s x;
         const int base = tests[i].base;
         Str str = tests[i].str;
         if (PARSE_I32(str, &x, base)) {
-            if (!PARSE_I32(str, NULL, base) ||
-                !tests[i].ok ||
-                x != tests[i].result) {
-                Error("%s\n", str);
-                ret = TEST_ERR;
-            }
-        } else if (tests[i].ok) {
-            Error("%s\n", str);
-            ret = TEST_ERR;
+            TEST_ASSERT(PARSE_I32(str, NULL, base));
+            TEST_ASSERT(tests[i].result == x);
+            TEST_ASSERT(tests[i].ok);
+        } else {
+            TEST_ASSERT(!tests[i].ok);
         }
     }
-    return ret;
+    return TEST_OK;
 }
 
 static
@@ -338,25 +304,20 @@ test_parse_u32(
         { T_("-1"), 10, False },
     };
 
-    TestStatus ret = TEST_OK;
     int i;
     for (i=0; i<COUNT(tests); i++) {
         I32u x;
         const int base = tests[i].base;
         Str str = tests[i].str;
         if (PARSE_U32(str, &x, base)) {
-            if (!PARSE_U32(str, NULL, base) ||
-                !tests[i].ok ||
-                x != tests[i].result) {
-                Error("%s\n", str);
-                ret = TEST_ERR;
-            }
-        } else if (tests[i].ok) {
-            Error("%s\n", str);
-            ret = TEST_ERR;
+            TEST_ASSERT(PARSE_U32(str, NULL, base));
+            TEST_ASSERT(tests[i].result == x);
+            TEST_ASSERT(tests[i].ok);
+        } else {
+            TEST_ASSERT(!tests[i].ok);
         }
     }
-    return ret;
+    return TEST_OK;
 }
 
 static
@@ -385,25 +346,20 @@ test_parse_i64(
         { T_("-1"), 10, True, __INT64_C(-1) },
     };
 
-    TestStatus ret = TEST_OK;
     int i;
     for (i=0; i<COUNT(tests); i++) {
         I64s x;
         const int base = tests[i].base;
         Str str = tests[i].str;
         if (PARSE_I64(str, &x, base)) {
-            if (!PARSE_I64(str, NULL, base) ||
-                !tests[i].ok ||
-                x != tests[i].result) {
-                Error("%s\n", str);
-                ret = TEST_ERR;
-            }
-        } else if (tests[i].ok) {
-            Error("%s\n", str);
-            ret = TEST_ERR;
+            TEST_ASSERT(PARSE_I64(str, NULL, base));
+            TEST_ASSERT(tests[i].result == x);
+            TEST_ASSERT(tests[i].ok);
+        } else {
+            TEST_ASSERT(!tests[i].ok);
         }
     }
-    return ret;
+    return TEST_OK;
 }
 
 static
@@ -433,25 +389,20 @@ test_parse_u64(
         { T_("-1"), 10, False },
     };
 
-    TestStatus ret = TEST_OK;
     int i;
     for (i=0; i<COUNT(tests); i++) {
         I64u x;
         const int base = tests[i].base;
         Str str = tests[i].str;
         if (PARSE_U64(str, &x, base)) {
-            if (!PARSE_U64(str, NULL, base) ||
-                !tests[i].ok ||
-                x != tests[i].result) {
-                Error("%s\n", str);
-                ret = TEST_ERR;
-            }
-        } else if (tests[i].ok) {
-            Error("%s\n", str);
-            ret = TEST_ERR;
+            TEST_ASSERT(PARSE_U64(str, NULL, base));
+            TEST_ASSERT(tests[i].result == x);
+            TEST_ASSERT(tests[i].ok);
+        } else {
+            TEST_ASSERT(!tests[i].ok);
         }
     }
-    return ret;
+    return TEST_OK;
 }
 
 static
@@ -478,25 +429,20 @@ test_parse_long(
     };
 
     /* Long can be 32 or 64 bits */
-    TestStatus ret = TEST_OK;
     int i;
     for (i=0; i<COUNT(tests); i++) {
         long x;
         const int base = tests[i].base;
         Str str = tests[i].str;
         if (PARSE_Long(str, &x, base)) {
-            if (!PARSE_Long(str, NULL, base) ||
-                !tests[i].ok ||
-                x != tests[i].result) {
-                Error("%s\n", str);
-                ret = TEST_ERR;
-            }
-        } else if (tests[i].ok) {
-            Error("%s\n", str);
-            ret = TEST_ERR;
+            TEST_ASSERT(PARSE_Long(str, NULL, base));
+            TEST_ASSERT(tests[i].result == x);
+            TEST_ASSERT(tests[i].ok);
+        } else {
+            TEST_ASSERT(!tests[i].ok);
         }
     }
-    return ret;
+    return TEST_OK;
 }
 
 static
@@ -524,25 +470,20 @@ test_parse_ulong(
     };
 
     /* Long can be 32 or 64 bits */
-    TestStatus ret = TEST_OK;
     int i;
     for (i=0; i<COUNT(tests); i++) {
         unsigned long x;
         const int base = tests[i].base;
         Str str = tests[i].str;
         if (PARSE_ULong(str, &x, base)) {
-            if (!PARSE_ULong(str, NULL, base) ||
-                !tests[i].ok ||
-                x != tests[i].result) {
-                Error("%s\n", str);
-                ret = TEST_ERR;
-            }
-        } else if (tests[i].ok) {
-            Error("%s\n", str);
-            ret = TEST_ERR;
+            TEST_ASSERT(PARSE_ULong(str, NULL, base));
+            TEST_ASSERT(tests[i].result == x);
+            TEST_ASSERT(tests[i].ok);
+        } else {
+            TEST_ASSERT(!tests[i].ok);
         }
     }
-    return ret;
+    return TEST_OK;
 }
 
 static
@@ -571,24 +512,19 @@ test_parse_float(
         { T_("1e888"), False },
     };
 
-    TestStatus ret = TEST_OK;
     int i;
     for (i=0; i<COUNT(tests); i++) {
         float x;
         Str str = tests[i].str;
         if (PARSE_Float(str, &x)) {
-            if (!PARSE_Float(str, NULL) ||
-                !tests[i].ok ||
-                x != tests[i].result) {
-                Error("%s\n", str);
-                ret = TEST_ERR;
-            }
-        } else if (tests[i].ok) {
-            Error("%s\n", str);
-            ret = TEST_ERR;
+            TEST_ASSERT(PARSE_Float(str, NULL));
+            TEST_ASSERT(tests[i].result == x);
+            TEST_ASSERT(tests[i].ok);
+        } else {
+            TEST_ASSERT(!tests[i].ok);
         }
     }
-    return ret;
+    return TEST_OK;
 }
 
 static
@@ -616,24 +552,19 @@ test_parse_double(
         { T_("1e888"), False },
     };
 
-    TestStatus ret = TEST_OK;
     int i;
     for (i=0; i<COUNT(tests); i++) {
         double x;
         Str str = tests[i].str;
         if (PARSE_Double(str, &x)) {
-            if (!PARSE_Double(str, NULL) ||
-                !tests[i].ok ||
-                x != tests[i].result) {
-                Error("%s\n", str);
-                ret = TEST_ERR;
-            }
-        } else if (tests[i].ok) {
-            Error("%s\n", str);
-            ret = TEST_ERR;
+            TEST_ASSERT(PARSE_Double(str, NULL));
+            TEST_ASSERT(tests[i].result == x);
+            TEST_ASSERT(tests[i].ok);
+        } else {
+            TEST_ASSERT(!tests[i].ok);
         }
     }
-    return ret;
+    return TEST_OK;
 }
 
 int
