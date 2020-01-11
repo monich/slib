@@ -1,7 +1,7 @@
 /*
- * $Id: s_def.h,v 1.68 2016/08/27 17:07:53 slava Exp $
+ * $Id: s_def.h,v 1.69 2020/01/11 18:20:11 slava Exp $
  *
- * Copyright (C) 2000-2016 by Slava Monich
+ * Copyright (C) 2000-2020 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -49,7 +49,7 @@ extern "C" {
 #endif  /* __cplusplus */
 
 /* define 8,16,32 and 64 bit integer types */
-typedef char      I8s;      /*  8 bit integer */
+typedef int8_t    I8s;      /*  8 bit integer */
 typedef uint8_t   I8u;      /*  8 bit integer */
 typedef int16_t   I16s;     /* 16 bit integer */
 typedef uint16_t  I16u;     /* 16 bit integer */
@@ -625,6 +625,9 @@ extern DebugAssertProc slibDebugAssertHandler;
  * HISTORY:
  *
  * $Log: s_def.h,v $
+ * Revision 1.69  2020/01/11 18:20:11  slava
+ * o compatibility with signed char
+ *
  * Revision 1.68  2016/08/27 17:07:53  slava
  * o use CDECL instead of __cdecl
  *

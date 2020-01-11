@@ -1,7 +1,7 @@
 /*
- * $Id: s_util.h,v 1.83 2016/09/18 13:58:18 slava Exp $
+ * $Id: s_util.h,v 1.84 2020/01/11 18:20:11 slava Exp $
  *
- * Copyright (C) 2000-2016 by Slava Monich
+ * Copyright (C) 2000-2020 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -232,7 +232,7 @@ extern void PRINT_Dump2 P_((PrintProc p,const void* buf,size_t cb,size_t off,
 
 /* parsing */
 extern Bool PARSE_Bool P_((Str s, Bool * b));
-extern Bool PARSE_Byte P_((Str s, char * n, int base));
+extern Bool PARSE_Byte P_((Str s, signed char * n, int base));
 extern Bool PARSE_UByte P_((Str s, unsigned char * n, int base));
 extern Bool PARSE_Short P_((Str s, short * n, int base));
 extern Bool PARSE_UShort P_((Str s, unsigned short * n, int base));
@@ -264,6 +264,9 @@ extern Bool PARSE_ULong64 P_((Str s, uint64_t * n, int base));
  * HISTORY:
  *
  * $Log: s_util.h,v $
+ * Revision 1.84  2020/01/11 18:20:11  slava
+ * o compatibility with signed char
+ *
  * Revision 1.83  2016/09/18 13:58:18  slava
  * o UTF8_Decode2 should return size_t
  *

@@ -1,7 +1,7 @@
 /*
- * $Id: s_parse.c,v 1.8 2016/09/18 10:09:22 slava Exp $
+ * $Id: s_parse.c,v 1.9 2020/01/11 18:20:12 slava Exp $
  *
- * Copyright (C) 2000-2016 by Slava Monich
+ * Copyright (C) 2000-2020 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -78,11 +78,11 @@ Bool PARSE_Bool(Str s, Bool * b)
 /**
  * Parse a byte, returning True on success.
  */
-Bool PARSE_Byte(Str s, char * n, int base)
+Bool PARSE_Byte(Str s, signed char * n, int base)
 {
     long number;
     if (PARSE_Long(s, &number, base)) {
-        if (number >= (long)CHAR_MIN && number <= (long)CHAR_MAX) {
+        if (number >= (long)SCHAR_MIN && number <= (long)SCHAR_MAX) {
             if (n) *n = (char)number;
             return True;
         }
@@ -480,6 +480,9 @@ Bool PARSE_ULong64(Str s, uint64_t * n, int base)
  * HISTORY:
  *
  * $Log: s_parse.c,v $
+ * Revision 1.9  2020/01/11 18:20:12  slava
+ * o compatibility with signed char
+ *
  * Revision 1.8  2016/09/18 10:09:22  slava
  * o skip leading spaces prior to passing the string to strtoull and strtoll
  * o errno needs to be set to zero prior to calling strtol and friends.
