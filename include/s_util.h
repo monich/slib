@@ -1,5 +1,5 @@
 /*
- * $Id: s_util.h,v 1.84 2020/01/11 18:20:11 slava Exp $
+ * $Id: s_util.h,v 1.85 2020/01/19 19:29:24 slava Exp $
  *
  * Copyright (C) 2000-2020 by Slava Monich
  *
@@ -170,6 +170,8 @@ extern Str URL_EncodeChars P_((StrBuf * dest, Str src, Str esc));
 /* string manipulations */
 extern char * STRING_Dup8 P_((const char * s));
 extern wchar_t * STRING_DupU P_((const wchar_t * ws));
+extern int STRING_Compare8 P_((const char * s1, const char * s2));
+extern int STRING_CompareU P_((const wchar_t * ws1, const wchar_t * ws2));
 extern Bool STRING_StartsWith8 P_((const char * s1, const char * s2));
 extern Bool STRING_StartsWithU P_((const wchar_t * s1, const wchar_t * s2));
 extern Bool STRING_StartsWithNoCase8 P_((const char * s1, const char * s2));
@@ -195,17 +197,21 @@ extern Char * STRING_Format P_((Char * buf, int bufsize, Str format, ...)
 
 #ifdef UNICODE
 #  define STRING_Dup(s)                     STRING_DupU(s)
+#  define STRING_Compare(s1,s2)             STRING_CompareU(s1,s2)
 #  define STRING_StartsWith(s1,s2)          STRING_StartsWithU(s1,s2)
 #  define STRING_StartsWithNoCase(s1,s2)    STRING_StartsWithNoCaseU(s1,s2)
 #  define STRING_EndsWith(s1,s2)            STRING_EndsWithU(s1,s2)
 #  define STRING_EndsWithNoCase(s1,s2)      STRING_EndsWithNoCaseU(s1,s2)
 #else  /* !UNICODE */
 #  define STRING_Dup(s)                     STRING_Dup8(s)
+#  define STRING_Compare(s1,s2)             STRING_Compare8(s1,s2)
 #  define STRING_StartsWith(s1,s2)          STRING_StartsWith8(s1,s2)
 #  define STRING_StartsWithNoCase(s1,s2)    STRING_StartsWithNoCase8(s1,s2)
 #  define STRING_EndsWith(s1,s2)            STRING_EndsWith8(s1,s2)
 #  define STRING_EndsWithNoCase(s1,s2)      STRING_EndsWithNoCase8(s1,s2)
 #endif /* !UNICODE */
+
+#define STRING_Equal(s1,s2) (!STRING_Compare(s1,s2))
 
 /* UTF-8 utilities */
 extern size_t UTF8_Size P_((const wchar_t * ws));
@@ -264,6 +270,9 @@ extern Bool PARSE_ULong64 P_((Str s, uint64_t * n, int base));
  * HISTORY:
  *
  * $Log: s_util.h,v $
+ * Revision 1.85  2020/01/19 19:29:24  slava
+ * o added NULL-tolerant STRING_Compare()
+ *
  * Revision 1.84  2020/01/11 18:20:11  slava
  * o compatibility with signed char
  *

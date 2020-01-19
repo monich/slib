@@ -1,7 +1,7 @@
 /*
- * $Id: s_str.c,v 1.51 2016/10/02 22:34:53 slava Exp $
+ * $Id: s_str.c,v 1.52 2020/01/19 19:29:24 slava Exp $
  *
- * Copyright (C) 2000-2016 by Slava Monich
+ * Copyright (C) 2000-2020 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -91,6 +91,32 @@ int STRING_HashCodeNoCase(Str s)
         }
     }
     return h;
+}
+
+/**
+ * NULL-tolerant string comparison.
+ */
+
+int STRING_Compare8(const char * s1, const char * s2)
+{
+    if (!s1) {
+        return -(s1 != s2);
+    } else if (!s2) {
+        return (s1 != s2);
+    } else {
+        return strcmp(s1, s2);
+    }
+}
+
+int STRING_CompareU(const wchar_t * ws1, const wchar_t * ws2)
+{
+    if (!ws1) {
+        return -(ws1 != ws2);
+    } else if (!ws2) {
+        return (ws1 != ws2);
+    } else {
+        return wcscmp(ws1, ws2);
+    }
 }
 
 /**
@@ -701,6 +727,9 @@ int STRING_Split(Str s, Vector * v, Str delim, Bool emptyOK)
  * HISTORY:
  *
  * $Log: s_str.c,v $
+ * Revision 1.52  2020/01/19 19:29:24  slava
+ * o added NULL-tolerant STRING_Compare()
+ *
  * Revision 1.51  2016/10/02 22:34:53  slava
  * o make sure that STRING_FormatVa returns NULL terminated string in case if
  *   memory allocation fails.

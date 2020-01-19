@@ -1,5 +1,5 @@
 /*
- * $Id: test_str.c,v 1.4 2020/01/19 19:10:07 slava Exp $
+ * $Id: test_str.c,v 1.5 2020/01/19 19:29:24 slava Exp $
  *
  * Copyright (C) 2016-2020 by Slava Monich
  *
@@ -192,14 +192,38 @@ test_str_hash(
 
 static
 TestStatus
+test_str_compare(
+    const TestDesc* test)
+{
+    TEST_ASSERT(STRING_Equal(NULL, NULL));
+
+    TEST_ASSERT(STRING_Compare8("", "") == 0);
+    TEST_ASSERT(STRING_Compare8("a", "a") == 0);
+    TEST_ASSERT(STRING_Compare8("a", "b") < 0);
+    TEST_ASSERT(STRING_Compare8("b", "a") > 0);
+    TEST_ASSERT(STRING_Compare8("", NULL) > 0);
+    TEST_ASSERT(STRING_Compare8(NULL, "") < 0);
+
+    TEST_ASSERT(STRING_CompareU(L"", L"") == 0);
+    TEST_ASSERT(STRING_CompareU(L"a", L"a") == 0);
+    TEST_ASSERT(STRING_CompareU(L"a", L"b") < 0);
+    TEST_ASSERT(STRING_CompareU(L"b", L"a") > 0);
+    TEST_ASSERT(STRING_CompareU(L"", NULL) > 0);
+    TEST_ASSERT(STRING_CompareU(NULL, L"") < 0);
+
+    return TEST_OK;
+}
+
+static
+TestStatus
 test_str_dup(
     const TestDesc* test)
 {
     char* s;
     wchar_t* ws;
 
-    ASSERT(!STRING_Dup(NULL));
-    ASSERT(!STRING_DupU(NULL));
+    TEST_ASSERT(!STRING_Dup(NULL));
+    TEST_ASSERT(!STRING_DupU(NULL));
 
     s = STRING_Dup8("test");
     TEST_ASSERT(s);
@@ -424,6 +448,7 @@ main(int argc, char* argv[])
         {"Alloc", test_str_alloc},
         {"IndexOf", test_str_indexof},
         {"Hash", test_str_hash},
+        {"Compare", test_str_compare},
         {"Dup", test_str_dup},
         {"StartsWith", test_str_startswith},
         {"EndsWith", test_str_endswith},
