@@ -1,7 +1,7 @@
 /*
- * $Id: s_prop.c,v 1.48 2015/08/16 16:07:32 slava Exp $
+ * $Id: s_prop.c,v 1.49 2020/01/20 00:11:41 slava Exp $
  *
- * Copyright (C) 2000-2015 by Slava Monich
+ * Copyright (C) 2000-2020 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -41,7 +41,7 @@
 typedef struct _PropEntry {
     QEntry e;                   /* list entry for linking them together */
     PropData data;              /* the data - key, value and such */
-    size_t cp;                  /* zero-based comment position */
+    ssize_t cp;                 /* zero-based comment position */
 } PropEntry;
 
 typedef struct _PropExam {      /* PROP_ExamCB context */
@@ -166,7 +166,7 @@ STATIC Str hexDigit              = TEXT("0123456789ABCDEF");
 STATIC Str emptyString           = TEXT("");
 
 /* forward definitions of static functions */
-STATIC PropEntry* propSet P_((Prop*prop,Str key,Str value,Str com,size_t cp));
+STATIC PropEntry* propSet P_((Prop* p, Str key, Str val, Str com, ssize_t cp));
 
 /*
  * Removes 'const' from a Prop pointer.
@@ -398,7 +398,7 @@ STATIC void PROP_LoadTrimTail(StrBuf * sb)
 /**
  * Adds comment entry to the properties
  */
-STATIC Bool PROP_AddCommentEntry(Prop * prop, Str c, size_t cp)
+STATIC Bool PROP_AddCommentEntry(Prop * prop, Str c, ssize_t cp)
 {
     PropEntry * pe = MEM_New(PropEntry);
     if (pe) {
@@ -643,7 +643,7 @@ STATIC Bool PROP_WriteCB(QEntry * e, void * ctx)
     }
 
     if (pe->data.c) {
-        while (pos < pe->cp) {
+        while ((ssize_t)pos < pe->cp) {
             if (!FILE_Putc(out, ' ')) {
                 return False;
             }
@@ -1033,7 +1033,7 @@ Bool PROP_SetLong64(Prop * prop, Str key, I64s n)
 /**
  * Internal property setter. Returns NULL if memory allocation fails.
  */
-STATIC PropEntry* propSet(Prop* prop, Str key, Str value, Str com, size_t cp)
+STATIC PropEntry* propSet(Prop* prop, Str key, Str value, Str com, ssize_t cp)
 {
     if (key && value) {
         PropEntry * pe = (PropEntry*)HASH_Get(&prop->map, (HashKeyC)key);
@@ -1623,6 +1623,10 @@ STATIC void PROP_ItrFree(Iterator * itr)
  * HISTORY:
  *
  * $Log: s_prop.c,v $
+ * Revision 1.49  2020/01/20 00:11:41  slava
+ * o fixed a problem with saving comments (endless loop due to signed vs
+ *   unsigned mismatch)
+ *
  * Revision 1.48  2015/08/16 16:07:32  slava
  * o housekeeping
  *
