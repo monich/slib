@@ -1,5 +1,5 @@
 /*
- * $Id: s_str.c,v 1.52 2020/01/19 19:29:24 slava Exp $
+ * $Id: s_str.c,v 1.53 2020/01/20 22:22:04 slava Exp $
  *
  * Copyright (C) 2000-2020 by Slava Monich
  *
@@ -548,15 +548,31 @@ wchar_t * STRING_ToUnicodeN(const char * s, size_t count)
 {
     wchar_t * ws = NULL;
     if (s) {
-        size_t n = mbstowcs(NULL, s, count);
-        if (n != ((size_t)-1)) {
-            ws = MEM_NewArray(wchar_t, n+1);
+        size_t n;
+        char * tmp = NULL;
+
+        if (!count) {
+            n = 0;
+        } else {
+            tmp = MEM_Alloc(count + 1);
+            if (tmp) {
+                memcpy(tmp, s, count);
+                tmp[count] = 0;
+                n = mbstowcs(NULL, tmp, 0);
+            } else {
+                n = (size_t)(-1);
+            }
+        }
+        if (n != ((size_t)(-1))) {
+            ws = MEM_NewArray(wchar_t, n + 1);
             if (ws) {
-                mbstowcs(ws, s, n+1);
+                if (n > 0) {
+                    n = mbstowcs(ws, tmp, n + 1);
+                }
                 ws[n] = 0;
             }
         } else {
-            /* UTF-8 often works */
+            /* Try UTF-8 */
             const char * utf8 = s;
             size_t remain = count;
             n = 0;
@@ -586,6 +602,7 @@ wchar_t * STRING_ToUnicodeN(const char * s, size_t count)
                 }
             }
         }
+        MEM_Free(tmp);
     }
     return ws;
 }
@@ -727,6 +744,9 @@ int STRING_Split(Str s, Vector * v, Str delim, Bool emptyOK)
  * HISTORY:
  *
  * $Log: s_str.c,v $
+ * Revision 1.53  2020/01/20 22:22:04  slava
+ * o use mbstowcs correctly (it expects NULL-terminated string)
+ *
  * Revision 1.52  2020/01/19 19:29:24  slava
  * o added NULL-tolerant STRING_Compare()
  *

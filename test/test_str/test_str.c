@@ -1,5 +1,5 @@
 /*
- * $Id: test_str.c,v 1.5 2020/01/19 19:29:24 slava Exp $
+ * $Id: test_str.c,v 1.6 2020/01/20 22:22:05 slava Exp $
  *
  * Copyright (C) 2016-2020 by Slava Monich
  *
@@ -42,6 +42,7 @@ test_str_alloc(
     StrBuf* sb;
     Vector v;
     char* s;
+    wchar_t* ws;
     char buf[2];
     int i;
     static const wchar_t wtest[] = {0x0442, 0x0435, 0x0441, 0x0442, 0};
@@ -85,9 +86,14 @@ test_str_alloc(
     MEM_Free(s);
 
     testMem.failAt = testMem.allocCount;
+    ws = STRING_ToUnicode("test"); /* The first failure is ignored */
+    TEST_ASSERT(!STRING_CompareU(ws, L"test"));
+    MEM_Free(ws);
+
+    testMem.failAt = testMem.allocCount + 1; /* The second failure isn't */
     TEST_ASSERT(!STRING_ToUnicode("test"));
 
-    testMem.failAt = testMem.allocCount;
+    testMem.failAt = testMem.allocCount + 1;
     TEST_ASSERT(!STRING_ToUnicode("\xD1\x82\xD0\xB5\xD1\x81\xD1\x82"));
 
     testMem.failAt = testMem.allocCount;
@@ -325,6 +331,11 @@ test_str_unicode(
     static const wchar_t wtest[] = {0x0442, 0x0435, 0x0441, 0x0442, 0};
     wchar_t* ws;
     char* s;
+
+    ws = STRING_ToUnicode("");
+    TEST_ASSERT(ws);
+    TEST_ASSERT(!ws[0]);
+    MEM_Free(ws);
 
     ws = STRING_ToUnicode("test");
     TEST_ASSERT(ws);
