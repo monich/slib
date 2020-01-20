@@ -1,7 +1,7 @@
 /*
- * $Id: s_file.c,v 1.63 2019/01/20 17:18:40 slava Exp $
+ * $Id: s_file.c,v 1.64 2020/01/20 02:46:03 slava Exp $
  *
- * Copyright (C) 2000-2019 by Slava Monich
+ * Copyright (C) 2000-2020 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -474,7 +474,7 @@ Bool FILE_Puts(File * f, Str s)
         if (!*s) {
             return True;
         } else {
-            size_t nbytes;
+            int nbytes;
 #ifdef UNICODE
             size_t n = wcstombs(NULL,s,0) + 1;
             char * bytes = NULL;
@@ -509,7 +509,7 @@ Bool FILE_Puts(File * f, Str s)
 #endif /* UNICODE */
             if (nbytes > 0) {
                 f->bytesWritten += nbytes;
-                if (nbytes == n) {
+                if ((size_t)nbytes == n) {
                     return True;
                 } else {
                     return MayBe;   /* partial write */
@@ -997,6 +997,9 @@ void FILE_Dump(File* out, const void* buf, size_t off, size_t len, size_t max)
  * HISTORY:
  *
  * $Log: s_file.c,v $
+ * Revision 1.64  2020/01/20 02:46:03  slava
+ * o correctly handle write errors in FILE_Puts
+ *
  * Revision 1.63  2019/01/20 17:18:40  slava
  * o removed unnecessary comparison from FILE_Skip
  *
