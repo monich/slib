@@ -1,5 +1,5 @@
 /*
- * $Id: s_prop.c,v 1.49 2020/01/20 00:11:41 slava Exp $
+ * $Id: s_prop.c,v 1.50 2020/01/20 00:14:33 slava Exp $
  *
  * Copyright (C) 2000-2020 by Slava Monich
  *
@@ -1379,7 +1379,7 @@ Bool PROP_Extract(Prop * dest, Str s1, Str s2, const Prop * src)
     ext.plen = (s1 ? StrLen(s1) : 0);
     ext.s1 = s1;
     ext.s2 = s2;
-    ext.samePrefix = BoolValue(s1 == s2 || (s1 && s2 && StrCmp(s1,s2) == 0));
+    ext.samePrefix = STRING_Equal(s1,s2);
     ext.sb = &buf.sb;
 
     ok = PROP_Examine(src, PROP_ExtractCB, &ext);
@@ -1623,6 +1623,9 @@ STATIC void PROP_ItrFree(Iterator * itr)
  * HISTORY:
  *
  * $Log: s_prop.c,v $
+ * Revision 1.50  2020/01/20 00:14:33  slava
+ * o use STRING_Equal()
+ *
  * Revision 1.49  2020/01/20 00:11:41  slava
  * o fixed a problem with saving comments (endless loop due to signed vs
  *   unsigned mismatch)
