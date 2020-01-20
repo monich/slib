@@ -1,5 +1,5 @@
 /*
- * $Id: s_prop.c,v 1.51 2020/01/20 00:27:19 slava Exp $
+ * $Id: s_prop.c,v 1.52 2020/01/20 03:03:17 slava Exp $
  *
  * Copyright (C) 2000-2020 by Slava Monich
  *
@@ -615,7 +615,8 @@ STATIC Bool PROP_WriteCB(QEntry * e, void * ctx)
         Char sep[4];
 
         s = PROP_SaveConvert(pe->data.key, sb);
-        if (!FILE_Puts(out, s))  {
+        /* NOTE: FILE_Puts returns MayBe on partial writes */
+        if (FILE_Puts(out, s) != True)  {
             return False;
         }
         pos += StrLen(s);
@@ -623,14 +624,14 @@ STATIC Bool PROP_WriteCB(QEntry * e, void * ctx)
         sep[0] = sep[2] = ' ';
         sep[1] = keyValueSeparators[0];
         sep[3] = 0;
-        if (!FILE_Puts(out, sep)) {
+        if (FILE_Puts(out, sep) != True) {
             return False;
         }
         pos += 3;
 
         if (pe->data.value) {
             s = PROP_SaveConvert(pe->data.value, sb);
-            if (!FILE_Puts(out, s))  {
+            if (FILE_Puts(out, s) != True)  {
                 return False;
             }
             pos += StrLen(s);
@@ -658,7 +659,7 @@ STATIC Bool PROP_WriteCB(QEntry * e, void * ctx)
             return False;
         }
 
-        if (!FILE_Puts(out, pe->data.c)) {
+        if (FILE_Puts(out, pe->data.c) != True) {
             return False;
         }
     }
@@ -1623,6 +1624,9 @@ STATIC void PROP_ItrFree(Iterator * itr)
  * HISTORY:
  *
  * $Log: s_prop.c,v $
+ * Revision 1.52  2020/01/20 03:03:17  slava
+ * o handle partial writes
+ *
  * Revision 1.51  2020/01/20 00:27:19  slava
  * o added PtrInt type
  *
