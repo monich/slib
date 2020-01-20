@@ -1,7 +1,7 @@
 /*
- * $Id: s_win32.h,v 1.53 2016/12/09 23:46:23 slava Exp $
+ * $Id: s_win32.h,v 1.54 2020/01/20 00:27:18 slava Exp $
  *
- * Copyright (C) 2000-2016 by Slava Monich
+ * Copyright (C) 2000-2020 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -354,6 +354,7 @@ typedef SOCKET Socket;
 
 /* the word that has same size as a pointer. */
 typedef UINT_PTR PtrWord;
+typedef INT_PTR PtrInt;
 
 /* memory allocation primitives provided by the system */
 #define OS_MemAlloc(_size) malloc(_size)
@@ -366,6 +367,9 @@ typedef UINT_PTR PtrWord;
  * HISTORY:
  *
  * $Log: s_win32.h,v $
+ * Revision 1.54  2020/01/20 00:27:18  slava
+ * o added PtrInt type
+ *
  * Revision 1.53  2016/12/09 23:46:23  slava
  * o define PtrWord via UINT_PTR. That works better with various
  *   Microsoft compilers. The way it was done before could produce

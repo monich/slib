@@ -1,7 +1,7 @@
 /*
- * $Id: s_ntk.h,v 1.36 2015/09/26 14:50:35 slava Exp $
+ * $Id: s_ntk.h,v 1.37 2020/01/20 00:27:18 slava Exp $
  *
- * Copyright (C) 2000-2015 by Slava Monich
+ * Copyright (C) 2000-2020 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -264,8 +264,10 @@ typedef int Socket;
 /* the word that has same size as a pointer. */
 #ifdef _WIN64
 typedef uint64_t PtrWord;
+typedef int64_t  PtrInt;
 #else
 typedef uint32_t PtrWord;
+typedef int32_t  PtrInt;
 #endif
 
 /* (non-paged) memory allocation primitives provided by the system */
@@ -369,6 +371,9 @@ KeReadStateEvent (
  * HISTORY:
  *
  * $Log: s_ntk.h,v $
+ * Revision 1.37  2020/01/20 00:27:18  slava
+ * o added PtrInt type
+ *
  * Revision 1.36  2015/09/26 14:50:35  slava
  * o added StrnCat macro
  *

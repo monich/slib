@@ -1,7 +1,7 @@
 /*
- * $Id: s_unix.h,v 1.56 2015/12/05 22:05:30 slava Exp $
+ * $Id: s_unix.h,v 1.57 2020/01/20 00:27:18 slava Exp $
  *
- * Copyright (C) 2000-2015 by Slava Monich
+ * Copyright (C) 2000-2020 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -340,7 +340,8 @@ typedef int Socket;
 #endif
 
 /* the word that has same size as a pointer */
-typedef unsigned long PtrWord;
+typedef size_t PtrWord;
+typedef ssize_t PtrInt;
 
 /* character type */
 typedef char Char;
@@ -397,6 +398,9 @@ typedef char Char;
  * HISTORY:
  *
  * $Log: s_unix.h,v $
+ * Revision 1.57  2020/01/20 00:27:18  slava
+ * o added PtrInt type
+ *
  * Revision 1.56  2015/12/05 22:05:30  slava
  * o improved compatibility with various versions of Mac OS X
  *

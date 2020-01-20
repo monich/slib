@@ -1,5 +1,5 @@
 /*
- * $Id: s_prop.c,v 1.50 2020/01/20 00:14:33 slava Exp $
+ * $Id: s_prop.c,v 1.51 2020/01/20 00:27:19 slava Exp $
  *
  * Copyright (C) 2000-2020 by Slava Monich
  *
@@ -41,7 +41,7 @@
 typedef struct _PropEntry {
     QEntry e;                   /* list entry for linking them together */
     PropData data;              /* the data - key, value and such */
-    ssize_t cp;                 /* zero-based comment position */
+    PtrInt cp;                  /* zero-based comment position */
 } PropEntry;
 
 typedef struct _PropExam {      /* PROP_ExamCB context */
@@ -166,7 +166,7 @@ STATIC Str hexDigit              = TEXT("0123456789ABCDEF");
 STATIC Str emptyString           = TEXT("");
 
 /* forward definitions of static functions */
-STATIC PropEntry* propSet P_((Prop* p, Str key, Str val, Str com, ssize_t cp));
+STATIC PropEntry* propSet P_((Prop* p, Str key, Str val, Str com, PtrInt cp));
 
 /*
  * Removes 'const' from a Prop pointer.
@@ -398,7 +398,7 @@ STATIC void PROP_LoadTrimTail(StrBuf * sb)
 /**
  * Adds comment entry to the properties
  */
-STATIC Bool PROP_AddCommentEntry(Prop * prop, Str c, ssize_t cp)
+STATIC Bool PROP_AddCommentEntry(Prop * prop, Str c, PtrInt cp)
 {
     PropEntry * pe = MEM_New(PropEntry);
     if (pe) {
@@ -606,9 +606,9 @@ STATIC Bool PROP_WriteCB(QEntry * e, void * ctx)
     PropWrite * context = (PropWrite*)ctx;
     StrBuf * sb = &context->sb;
     File * out = context->out;
-    size_t pos = 0;
-
+    PtrInt pos = 0;
     PropEntry * pe = QCAST(e,PropEntry,e);
+
     if (pe->data.key) {
 
         Str s;
@@ -643,7 +643,7 @@ STATIC Bool PROP_WriteCB(QEntry * e, void * ctx)
     }
 
     if (pe->data.c) {
-        while ((ssize_t)pos < pe->cp) {
+        while (pos < pe->cp) {
             if (!FILE_Putc(out, ' ')) {
                 return False;
             }
@@ -1033,7 +1033,7 @@ Bool PROP_SetLong64(Prop * prop, Str key, I64s n)
 /**
  * Internal property setter. Returns NULL if memory allocation fails.
  */
-STATIC PropEntry* propSet(Prop* prop, Str key, Str value, Str com, ssize_t cp)
+STATIC PropEntry* propSet(Prop* prop, Str key, Str value, Str com, PtrInt cp)
 {
     if (key && value) {
         PropEntry * pe = (PropEntry*)HASH_Get(&prop->map, (HashKeyC)key);
@@ -1623,6 +1623,9 @@ STATIC void PROP_ItrFree(Iterator * itr)
  * HISTORY:
  *
  * $Log: s_prop.c,v $
+ * Revision 1.51  2020/01/20 00:27:19  slava
+ * o added PtrInt type
+ *
  * Revision 1.50  2020/01/20 00:14:33  slava
  * o use STRING_Equal()
  *
