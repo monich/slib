@@ -1,5 +1,5 @@
 /*
- * $Id: s_prop.c,v 1.52 2020/01/20 03:03:17 slava Exp $
+ * $Id: s_prop.c,v 1.53 2020/01/20 17:39:09 slava Exp $
  *
  * Copyright (C) 2000-2020 by Slava Monich
  *
@@ -1040,11 +1040,19 @@ STATIC PropEntry* propSet(Prop* prop, Str key, Str value, Str com, PtrInt cp)
         PropEntry * pe = (PropEntry*)HASH_Get(&prop->map, (HashKeyC)key);
         if (pe) {
             Char * val;
+
             ASSERT(StrCmp(key, pe->data.key) == 0);
+
+            /* Failure to duplicate comment is not considered fatal */
+            if (!STRING_Equal(com, pe->data.c)) {
+                MEM_Free(pe->data.c);
+                pe->data.c = STRING_Dup(com);
+            }
+
             if (StrCmp(value, pe->data.value) == 0) {
                 /*
                  * Properties already contain the exact same value.
-                 * Don't touch anything, just return existing entry.
+                 * Just return existing entry.
                  */
                 return pe;
             }
@@ -1624,6 +1632,9 @@ STATIC void PROP_ItrFree(Iterator * itr)
  * HISTORY:
  *
  * $Log: s_prop.c,v $
+ * Revision 1.53  2020/01/20 17:39:09  slava
+ * o fixed setting comment for existing property entry
+ *
  * Revision 1.52  2020/01/20 03:03:17  slava
  * o handle partial writes
  *
