@@ -17,6 +17,7 @@ test_md \
 test_mfp \
 test_mpm \
 test_parse \
+test_prop \
 test_queue \
 test_ring \
 test_stack \

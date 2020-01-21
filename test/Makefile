@@ -17,6 +17,7 @@ all:
 	$(call RUN_MAKE,-C test_mfp $*)
 	$(call RUN_MAKE,-C test_mpm $*)
 	$(call RUN_MAKE,-C test_parse $*)
+	$(call RUN_MAKE,-C test_prop $*)
 	$(call RUN_MAKE,-C test_ring $*)
 	$(call RUN_MAKE,-C test_stack $*)
 	$(call RUN_MAKE,-C test_str $*)
