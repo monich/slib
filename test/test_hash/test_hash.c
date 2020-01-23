@@ -1,7 +1,7 @@
 /*
- * $Id: test_hash.c,v 1.4 2019/01/16 23:57:53 slava Exp $
+ * $Id: test_hash.c,v 1.5 2020/01/23 00:35:33 slava Exp $
  *
- * Copyright (C) 2016-2019 by Slava Monich
+ * Copyright (C) 2016-2020 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -69,12 +69,12 @@ test_hash_alloc(
 
     testMem.failCount = 1;
     /*
-     * On Windows we don't have hash bucket pool for the threads
-     * not created with THREAD_Create. Therefore we will never
-     * try to allocate HashBuckets and there won't be 2 memory
-     * allocation attempts in a row. Just skip this part on Windows.
+     * If hash bucket pool is disabled (and it is disabled by default)
+     * we will never try to allocate HashBuckets and there won't be 2
+     * memory allocation attempts in a row. Just skip this part for now
+     * and perhaps get rid of it alltogether later.
      */
-#ifndef _WIN32
+#if 0 /* no hash bucket pool (by default) */
     testMem.failAt = testMem.allocCount + 1;
     TEST_ASSERT(!HASH_Put(ht1, HASH_INT_KEY(1), HASH_INT_VALUE(1)));
 #endif
