@@ -1,5 +1,5 @@
 /*
- * $Id: test_prop.c,v 1.2 2020/01/21 23:39:53 slava Exp $
+ * $Id: test_prop.c,v 1.3 2020/01/23 00:25:04 slava Exp $
  *
  * Copyright (C) 2020 by Slava Monich
  *
@@ -57,14 +57,7 @@ test_prop_alloc(
     testMem.failAt = testMem.allocCount + i;
     TEST_ASSERT((p = PROP_Create()) != NULL);
 
-    for (i = 0; i < 3; i++) {
-        testMem.failAt = testMem.allocCount + i;
-        TEST_ASSERT(!PROP_Set(p, k, v));
-    }
-
-    /* One failure is being ignored (comment allocation) */
-    i++;
-    for (; i < 5; i++) {
+    for (i = 0; i < 4; i++) {
         testMem.failAt = testMem.allocCount + i;
         TEST_ASSERT(!PROP_Set(p, k, v));
     }
@@ -626,6 +619,7 @@ TestStatus
 test_prop_read_xml(
     const TestDesc* test)
 {
+#ifndef _WIN32
     Prop* p = PROP_Create();
     File* in;
     XMLTag* root;
@@ -665,6 +659,7 @@ test_prop_read_xml(
     TEST_ASSERT(STRING_Equal(PROP_GetComment(p, key), comment));
 
     PROP_Delete(p);
+#endif /* _WIN32 */
     return TEST_OK;
 }
 
