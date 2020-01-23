@@ -210,6 +210,21 @@ Package=<4>
 
 ###############################################################################
 
+Project: "test_prop"=.\test_prop\test_prop.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name slib
+    End Project Dependency
+}}}
+
+###############################################################################
+
 Project: "test_queue"=.\test_queue\test_queue.dsp - Package Owner=<4>
 
 Package=<5>
