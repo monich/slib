@@ -1,7 +1,7 @@
 /*
- * $Id: s_hash.c,v 1.52 2019/01/16 23:54:38 slava Exp $
+ * $Id: s_hash.c,v 1.54 2020/01/23 00:22:19 slava Exp $
  *
- * Copyright (C) 2000-2019 by Slava Monich
+ * Copyright (C) 2000-2020 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -43,12 +43,13 @@
 #undef current
 
 /*
- * _HASH_POOL disables the use of the hash entry pool. If it's defined
+ * _HASH_POOL enables the use of the hash entry pool. If it's defined
  * to zero, all HashBucket structures will be dynamically allocated as
- * needed. By default, hash pool is on.
+ * needed. By default, hash pool is off (let C runtime to do the right
+ * thing).
  */
 #ifndef _HASH_POOL
-#  define _HASH_POOL 1
+#  define _HASH_POOL 0
 #endif /* !_HASH_POOL */
 
 /*
@@ -1111,6 +1112,13 @@ STATIC void HASH_ItrFreeEntry(Iterator * itr)
  * HISTORY:
  *
  * $Log: s_hash.c,v $
+ * Revision 1.54  2020/01/23 00:22:19  slava
+ * o improved comment
+ *
+ * Revision 1.53  2020/01/23 00:10:29  slava
+ * o disable hash bucket pool by default. It doesn't seem to be worth the
+ *   trouble.
+ *
  * Revision 1.52  2019/01/16 23:54:38  slava
  * o removed unnecessary check from HASH_ItrInit. Its caller makes sure
  *   that hash table is not empty.
