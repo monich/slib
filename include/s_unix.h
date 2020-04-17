@@ -1,5 +1,5 @@
 /*
- * $Id: s_unix.h,v 1.57 2020/01/20 00:27:18 slava Exp $
+ * $Id: s_unix.h,v 1.58 2020/04/17 21:26:26 slava Exp $
  *
  * Copyright (C) 2000-2020 by Slava Monich
  *
@@ -60,6 +60,7 @@ COMPILE_ASSERT(sizeof(long) == 8)
 #  endif /* KERNELRELEASE */
 
 #  include <linux/kernel.h>
+#  include <linux/version.h>
 #  include <linux/vmalloc.h>
 #  include <linux/string.h>
 #  include <linux/ctype.h>
@@ -67,6 +68,10 @@ COMPILE_ASSERT(sizeof(long) == 8)
 #  include <linux/slab.h>
 #  include <linux/nls.h>
 #  include <asm/string.h>
+
+#  if (LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,0))
+   typedef time64_t time_t;
+#  endif
 
    /* signals that should never be blocked by kernel */
 #  define SHUTDOWN_SIGS  (sigmask(SIGKILL)|sigmask(SIGINT)|sigmask(SIGQUIT))
@@ -398,6 +403,9 @@ typedef char Char;
  * HISTORY:
  *
  * $Log: s_unix.h,v $
+ * Revision 1.58  2020/04/17 21:26:26  slava
+ * o fix build against Linux 5.6 kernel
+ *
  * Revision 1.57  2020/01/20 00:27:18  slava
  * o added PtrInt type
  *
