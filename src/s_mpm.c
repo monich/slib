@@ -1,7 +1,7 @@
 /*
- * $Id: s_mpm.c,v 1.38 2016/08/16 22:14:07 slava Exp $
+ * $Id: s_mpm.c,v 1.39 2020/04/17 21:20:00 slava Exp $
  *
- * Copyright (C) 2002-2016 by Slava Monich
+ * Copyright (C) 2002-2020 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -1917,10 +1917,10 @@ Bool BIGINT_Parse(BigInt * b, Str s, int radix)
         switch (*s) {
         case '-':
             sign = -1;
-            /* no break */
+            /* fallthrough */
         case '+':
             s++;
-            /* no break */
+            /* fallthrough */
         default:
             break;
         }
@@ -1969,6 +1969,9 @@ Bool BIGINT_Parse(BigInt * b, Str s, int radix)
  * HISTORY:
  *
  * $Log: s_mpm.c,v $
+ * Revision 1.39  2020/04/17 21:20:00  slava
+ * o prevent compilation warnings from modern gcc
+ *
  * Revision 1.38  2016/08/16 22:14:07  slava
  * o removed unnecessary check in BIGINT_Div
  *
