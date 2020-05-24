@@ -1,6 +1,6 @@
 # -*- Mode: makefile-gmake -*-
 #
-# $Id: Makefile,v 1.87 2020/01/11 21:42:07 slava Exp $
+# $Id: Makefile,v 1.88 2020/05/24 21:53:11 slava Exp $
 #
 # Makefile for libslava.a
 #
@@ -387,13 +387,9 @@ $(COVERAGE_BUILD_DIR)/%.o : $(SRC1_DIR)/%.c
 # Install
 #
 
-INSTALL_PERM  = 644
-INSTALL_OWNER = $(shell id -u)
-INSTALL_GROUP = $(shell id -g)
-
 INSTALL = install
 INSTALL_DIRS = $(INSTALL) -d
-INSTALL_FILES = $(INSTALL) -m $(INSTALL_PERM)
+INSTALL_FILES = $(INSTALL) -m 644
 
 INSTALL_LIB_DIR = $(DESTDIR)$(LIBDIR)
 INSTALL_INCLUDE_DIR = $(DESTDIR)/usr/include/slib
@@ -416,6 +412,9 @@ $(INSTALL_PKGCONFIG_DIR):
 
 #
 # $Log: Makefile,v $
+# Revision 1.88  2020/05/24 21:53:11  slava
+# o cleaned up Makefile
+#
 # Revision 1.87  2020/01/11 21:42:07  slava
 # o removed unnecessary GCOV stuff
 #
