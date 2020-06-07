@@ -1,7 +1,7 @@
 /*
- * $Id: test_mfp.c,v 1.2 2016/10/02 22:55:23 slava Exp $
+ * $Id: test_mfp.c,v 1.3 2020/06/07 01:38:46 slava Exp $
  *
- * Copyright (C) 2016 by Slava Monich
+ * Copyright (C) 2016-2020 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -47,28 +47,17 @@ TestStatus
 test_mfp_basic(
     const TestDesc* test)
 {
-    TestStatus ret = TEST_OK;
-    if (FIX32_Int(0) ||
-        FIX64_Int(0)) {
-        ret = TEST_ERR;
-    }
-    if (FIX32_Int(1) != f32_1 ||
-        FIX64_Int(1) != f64_1) {
-        ret = TEST_ERR;
-    }
-    if (FIX32_Int(-1) != f32_minus1 ||
-        FIX64_Int(-1) != f64_minus1) {
-        ret = TEST_ERR;
-    }
-    if (FIX32_Int(2) != f32_2 ||
-        FIX64_Int(2) != f64_2) {
-        ret = TEST_ERR;
-    }
-    if (FIX32_Int(0xffff) != f32_minus1 ||
-        FIX64_Int(0xffffffff) != f64_minus1) {
-        ret = TEST_ERR;
-    }
-    return ret;
+    TEST_ASSERT(!FIX32_Int(0));
+    TEST_ASSERT(!FIX64_Int(0));
+    TEST_ASSERT(FIX32_Int(1) == f32_1);
+    TEST_ASSERT(FIX64_Int(1) == f64_1);
+    TEST_ASSERT(FIX32_Int(-1) == f32_minus1);
+    TEST_ASSERT(FIX64_Int(-1) == f64_minus1);
+    TEST_ASSERT(FIX32_Int(2) == f32_2);
+    TEST_ASSERT(FIX64_Int(2) == f64_2);
+    TEST_ASSERT(FIX32_Int(0xffff) == f32_minus1);
+    TEST_ASSERT(FIX64_Int(0xffffffff) == f64_minus1);
+    return TEST_OK;
 }
 
 static
@@ -76,54 +65,30 @@ TestStatus
 test_mfp_div(
     const TestDesc* test)
 {
-    TestStatus ret = TEST_OK;
-
     /* FIX32_Div and FIX64_Div should survive devision by zero */
-    if (FIX32_Div(FIX32_Int(1),0) ||
-        FIX64_Div(FIX64_Int(1),0)) {
-        ret = TEST_ERR;
-    }
-    if (FIX32_Div(0, f32_1) ||
-        FIX64_Div(0, f64_1)) {
-        ret = TEST_ERR;
-    }
-    if (FIX32_Div(0, f32_minus1) ||
-        FIX64_Div(0, f64_minus1)) {
-        ret = TEST_ERR;
-    }
-    if (FIX32_Ratio(1,4) != f32_1by4 ||
-        FIX64_Ratio(1,4) != f64_1by4) {
-        ret = TEST_ERR;
-    }
-    if (FIX32_Ratio(2,3) != f32_2by3 ||
-        FIX64_Ratio(2,3) != f64_2by3) {
-        ret = TEST_ERR;
-    }
-    if (FIX32_Div(FIX32_Int(2), FIX32_Int(3)) != f32_2by3 ||
-        FIX64_Div(FIX64_Int(2), FIX64_Int(3)) != f64_2by3) {
-        ret = TEST_ERR;
-    }
-    if (FIX32_Div(FIX32_Int(2), FIX32_Int(-3)) != -f32_2by3 ||
-        FIX64_Div(FIX64_Int(2), FIX64_Int(-3)) != -f64_2by3) {
-        ret = TEST_ERR;
-    }
-    if (FIX32_Div(FIX32_Int(-2), FIX32_Int(3)) != -f32_2by3 ||
-        FIX64_Div(FIX64_Int(-2), FIX64_Int(3)) != -f64_2by3) {
-        ret = TEST_ERR;
-    }
-    if (FIX32_Div(FIX32_Int(2), f32_1by4) != FIX32_Int(8) ||
-        FIX64_Div(FIX64_Int(2), f64_1by4) != FIX64_Int(8)) {
-        ret = TEST_ERR;
-    }
-    if (FIX32_Div(FIX32_Int(SHRT_MIN), f32_1) != FIX32_Int(SHRT_MIN) ||
-        FIX64_Div(FIX64_Int(INT_MIN), f64_1) != FIX64_Int(INT_MIN)) {
-        ret = TEST_ERR;
-    }
-    if (FIX32_Div(FIX32_Int(SHRT_MIN), f32_2) != FIX32_Int(SHRT_MIN/2) ||
-        FIX64_Div(FIX64_Int(INT_MIN), f64_2) != FIX64_Int(INT_MIN/2)) {
-        ret = TEST_ERR;
-    }
-    return ret;
+    TEST_ASSERT(!FIX32_Div(FIX32_Int(1),0));
+    TEST_ASSERT(!FIX64_Div(FIX64_Int(1),0));
+    TEST_ASSERT(!FIX32_Div(0, f32_1));
+    TEST_ASSERT(!FIX64_Div(0, f64_1));
+    TEST_ASSERT(!FIX32_Div(0, f32_minus1));
+    TEST_ASSERT(!FIX64_Div(0, f64_minus1));
+    TEST_ASSERT(FIX32_Ratio(1,4) == f32_1by4);
+    TEST_ASSERT(FIX64_Ratio(1,4) == f64_1by4);
+    TEST_ASSERT(FIX32_Ratio(2,3) == f32_2by3);
+    TEST_ASSERT(FIX64_Ratio(2,3) == f64_2by3);
+    TEST_ASSERT(FIX32_Div(FIX32_Int(2), FIX32_Int(3)) == f32_2by3);
+    TEST_ASSERT(FIX64_Div(FIX64_Int(2), FIX64_Int(3)) == f64_2by3);
+    TEST_ASSERT(FIX32_Div(FIX32_Int(2), FIX32_Int(-3)) == -f32_2by3);
+    TEST_ASSERT(FIX64_Div(FIX64_Int(2), FIX64_Int(-3)) == -f64_2by3);
+    TEST_ASSERT(FIX32_Div(FIX32_Int(-2), FIX32_Int(3)) == -f32_2by3);
+    TEST_ASSERT(FIX64_Div(FIX64_Int(-2), FIX64_Int(3)) == -f64_2by3);
+    TEST_ASSERT(FIX32_Div(FIX32_Int(2), f32_1by4) == FIX32_Int(8));
+    TEST_ASSERT(FIX64_Div(FIX64_Int(2), f64_1by4) == FIX64_Int(8));
+    TEST_ASSERT(FIX32_Div(FIX32_Int(SHRT_MIN),f32_1) == FIX32_Int(SHRT_MIN));
+    TEST_ASSERT(FIX64_Div(FIX64_Int(INT_MIN),f64_1) == FIX64_Int(INT_MIN));
+    TEST_ASSERT(FIX32_Div(FIX32_Int(SHRT_MIN),f32_2) == FIX32_Int(SHRT_MIN/2));
+    TEST_ASSERT(FIX64_Div(FIX64_Int(INT_MIN),f64_2) == FIX64_Int(INT_MIN/2));
+    return TEST_OK;
 }
 
 static
@@ -131,24 +96,15 @@ TestStatus
 test_mfp_mul(
     const TestDesc* test)
 {
-    TestStatus ret = TEST_OK;
-    if (FIX32_Mul(f32_2, f32_2) != FIX32_Int(4) ||
-        FIX64_Mul(f64_2, f64_2) != FIX64_Int(4)) {
-        ret = TEST_ERR;
-    }
-    if (FIX32_Mul(f32_minus1, f32_minus1) != f32_1 ||
-        FIX64_Mul(f64_minus1, f64_minus1) != f64_1) {
-        ret = TEST_ERR;
-    }
-    if (FIX32_Mul(FIX32_Int(-1024), FIX32_Ratio(1,1024)) != f32_minus1 ||
-        FIX64_Mul(FIX64_Int(-1024), FIX64_Ratio(1,1024)) != f64_minus1) {
-        ret = TEST_ERR;
-    }
-    if (FIX32_Mul(FIX32_Int(1024), FIX32_Ratio(1,1024)) != f32_1 ||
-        FIX64_Mul(FIX64_Int(1024), FIX64_Ratio(1,1024)) != f64_1) {
-        ret = TEST_ERR;
-    }
-    return ret;
+    TEST_ASSERT(FIX32_Mul(f32_2, f32_2) == FIX32_Int(4));
+    TEST_ASSERT(FIX64_Mul(f64_2, f64_2) == FIX64_Int(4));
+    TEST_ASSERT(FIX32_Mul(f32_minus1, f32_minus1) == f32_1);
+    TEST_ASSERT(FIX64_Mul(f64_minus1, f64_minus1) == f64_1);
+    TEST_ASSERT(FIX32_Mul(FIX32_Int(-1024),FIX32_Ratio(1,1024)) == f32_minus1);
+    TEST_ASSERT(FIX64_Mul(FIX64_Int(-1024),FIX64_Ratio(1,1024)) == f64_minus1);
+    TEST_ASSERT(FIX32_Mul(FIX32_Int(1024), FIX32_Ratio(1,1024)) == f32_1);
+    TEST_ASSERT(FIX64_Mul(FIX64_Int(1024), FIX64_Ratio(1,1024)) == f64_1);
+    return TEST_OK;
 }
 
 int main(int argc, char* argv[])
