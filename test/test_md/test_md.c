@@ -1,7 +1,7 @@
 /*
- * $Id: test_md.c,v 1.1 2016/09/26 16:09:18 slava Exp $
+ * $Id: test_md.c,v 1.2 2020/06/08 00:42:24 slava Exp $
  *
- * Copyright (C) 2016 by Slava Monich
+ * Copyright (C) 2016-2020 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -129,26 +129,23 @@ TestStatus
 test_md(
     const TestDesc* desc)
 {
-    TestStatus ret = TEST_OK;
     int i;
     const TestDigest* test = CAST(desc,TestDigest,desc);
     const size_t input_len = strlen(test->in);
-    const char* name;
     Digest* digest;
     size_t size;
     void* out;
 
     /* Simulate allocation failure */
     testMem.failAt = testMem.allocCount;
-    if (test->create_digest()) {
-         ret = TEST_ERR;
-    }
+    TEST_ASSERT(!test->create_digest());
 
     /* This one will succeed */
     digest = test->create_digest();
     DIGEST_Init(digest);
     size = DIGEST_Size(digest);
-    name = DIGEST_Name(digest);
+    TEST_ASSERT(size == test->outsize);
+    TEST_ASSERT(DIGEST_Name(digest));
     out = MEM_Alloc(size);
 
     for (i=0; i<test->repeat; i++) {
@@ -160,23 +157,15 @@ test_md(
         }
     }
     DIGEST_Finish(digest, out);
-    if (size != test->outsize) {
-        PRINT_Error("%s output size mismatch\n", name);
-        ret = TEST_ERR;
-    } else if (memcmp(out, test->out, size)) {
-        PRINT_Error("%s digest mismatch\n", name);
-        ret = TEST_ERR;
-    } else if (test->repeat == 1) {
+    TEST_ASSERT(!memcmp(out, test->out, size));
+    if (test->repeat == 1) {
         test->one_shot_digest(test->in, input_len, out);
-        if (memcmp(out, test->out, size)) {
-            PRINT_Error("%s single shot digest mismatch\n", name);
-            ret = TEST_ERR;
-        }
+        TEST_ASSERT(!memcmp(out, test->out, size));
     }
 
     DIGEST_Delete(digest);
     MEM_Free(out);
-    return ret;
+    return TEST_OK;
 }
 
 #define TEST_DATA(d) d, sizeof(d)
