@@ -1,10 +1,9 @@
-prefix=/usr
-libdir=[libdir]
-includedir=${prefix}/include
+libdir=@libdir@
+includedir=/usr/include
 
 Name: slib
 Description: General purpose utility library
-Version: [version]
-Requires: expat libcurl
+Version: @version@
+Requires.private: expat libcurl
 Libs: -L${libdir} -lslava -lpthread -lm
 Cflags: -I${includedir}/slib

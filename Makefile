@@ -1,6 +1,6 @@
 # -*- Mode: makefile-gmake -*-
 #
-# $Id: Makefile,v 1.88 2020/05/24 21:53:11 slava Exp $
+# $Id: Makefile,v 1.89 2020/06/26 18:14:13 slava Exp $
 #
 # Makefile for libslava.a
 #
@@ -229,7 +229,8 @@ DEBUG_BUILD_DIR = $(BUILD_DIR)/debug
 RELEASE_BUILD_DIR = $(BUILD_DIR)/release
 PROFILE_BUILD_DIR = $(RELEASE_BUILD_DIR)/profile
 COVERAGE_BUILD_DIR = $(BUILD_DIR)/coverage
-LIBDIR ?= /usr/lib
+LIBDIR ?= usr/lib
+ABS_LIBDIR := $(shell echo /$(LIBDIR) | sed -r 's|/+|/|g')
 
 #
 # Files
@@ -357,7 +358,7 @@ endif
 #
 
 $(BUILD_DIR)/%.pc: %.pc.in
-	$(call RUN,sed -e 's/\[version\]/'$(VERSION)/g -e 's/\[libdir\]/'`echo $(LIBDIR) | sed 's/\\//\\\\\\//g'`/g $< > $@)
+	$(call RUN,sed -e 's|@version@|$(PCVERSION)|g' -e 's|@libdir@|$(ABS_LIBDIR)|g' $< > $@)
 
 $(DEBUG_BUILD_DIR)/%.o : $(SRC_DIR)/%.c
 	$(call CC_DEBUG,$<,$@)
@@ -391,9 +392,9 @@ INSTALL = install
 INSTALL_DIRS = $(INSTALL) -d
 INSTALL_FILES = $(INSTALL) -m 644
 
-INSTALL_LIB_DIR = $(DESTDIR)$(LIBDIR)
+INSTALL_LIB_DIR = $(DESTDIR)$(ABS_LIBDIR)
 INSTALL_INCLUDE_DIR = $(DESTDIR)/usr/include/slib
-INSTALL_PKGCONFIG_DIR = $(DESTDIR)/$(LIBDIR)/pkgconfig
+INSTALL_PKGCONFIG_DIR = $(DESTDIR)$(ABS_LIBDIR)/pkgconfig
 
 install: $(PKGCONFIG) $(INSTALL_LIB_DIR) $(INSTALL_INCLUDE_DIR) $(INSTALL_PKGCONFIG_DIR)
 	$(INSTALL_FILES) $(DEBUG_LIB) $(RELEASE_LIB) $(INSTALL_LIB_DIR)
@@ -412,6 +413,9 @@ $(INSTALL_PKGCONFIG_DIR):
 
 #
 # $Log: Makefile,v $
+# Revision 1.89  2020/06/26 18:14:13  slava
+# o use arch-specific LIBDIR
+#
 # Revision 1.88  2020/05/24 21:53:11  slava
 # o cleaned up Makefile
 #

@@ -18,7 +18,7 @@ Provides slib headers and static library.
 %setup -q
 
 %build
-make all
+make all LIBDIR=%{_libdir}
 
 %check
 make check

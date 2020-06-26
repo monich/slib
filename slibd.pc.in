@@ -1,10 +1,9 @@
-prefix=/usr
-libdir=[libdir]
-includedir=${prefix}/include
+libdir=@libdir@
+includedir=/usr/include
 
 Name: slib (debug)
 Description: General purpose utility library (debug build)
-Version: [version]
-Requires: expat libcurl
+Version: @version@
+Requires.private: expat libcurl
 Libs: -L${libdir} -lslavad -lpthread -lm
 Cflags: -I${includedir}/slib
