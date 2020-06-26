@@ -1,6 +1,6 @@
 # -*- Mode: makefile-gmake -*-
 #
-# $Id: Makefile,v 1.89 2020/06/26 18:14:13 slava Exp $
+# $Id: Makefile,v 1.90 2020/06/26 18:36:59 slava Exp $
 #
 # Makefile for libslava.a
 #
@@ -43,7 +43,7 @@ PROFILE_NAME = libslavap
 COVERAGE_NAME = libslavac
 
 CC = $(CROSS_COMPILE)gcc
-DEBUG_FLAGS = -g
+DEBUG_FLAGS = -g -O0 -Wp,-U_FORTIFY_SOURCE
 RELEASE_FLAGS = -O2
 PROFILE_FLAGS = $(RELEASE_FLAGS) -pg
 COVERAGE_FLAGS = $(RELEASE_FLAGS) --coverage
@@ -55,14 +55,14 @@ DEBUG_DEFINES = -DDEBUG=1 -DDEBUG_MEM
 WARNINGS = -Wall -Wstrict-prototypes -Wshadow -Wwrite-strings \
  -Waggregate-return -Wnested-externs
 
-CPPFLAGS = $(INCLUDES) $(DEFINES)
-CFLAGS = $(WARNINGS) -fno-strict-aliasing -fPIC -MMD -MP
+CPPFLAGS += $(INCLUDES) $(DEFINES)
+CFLAGS += $(WARNINGS) -fno-strict-aliasing -fPIC -MMD -MP
 ARFLAGS = rc
 
-DEBUG_CFLAGS = $(DEBUG_FLAGS) $(CFLAGS) $(CPPFLAGS) $(DEBUG_DEFINES)
-RELEASE_CFLAGS = $(RELEASE_FLAGS) $(CFLAGS) $(CPPFLAGS)
-PROFILE_CFLAGS = $(PROFILE_FLAGS) $(CFLAGS) $(CPPFLAGS)
-COVERAGE_CFLAGS = $(COVERAGE_FLAGS) $(CFLAGS) $(CPPFLAGS)
+DEBUG_CFLAGS =  $(CFLAGS) $(CPPFLAGS) $(DEBUG_FLAGS) $(DEBUG_DEFINES)
+RELEASE_CFLAGS = $(CFLAGS) $(CPPFLAGS) $(RELEASE_FLAGS)
+PROFILE_CFLAGS = $(CFLAGS) $(CPPFLAGS) $(PROFILE_FLAGS)
+COVERAGE_CFLAGS = $(CFLAGS) $(CPPFLAGS) $(COVERAGE_FLAGS)
 
 #
 # Macros to quietly run commands
@@ -413,6 +413,9 @@ $(INSTALL_PKGCONFIG_DIR):
 
 #
 # $Log: Makefile,v $
+# Revision 1.90  2020/06/26 18:36:59  slava
+# o don't ignore pre-defined CFLAGS and CPPFLAGS
+#
 # Revision 1.89  2020/06/26 18:14:13  slava
 # o use arch-specific LIBDIR
 #
