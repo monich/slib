@@ -1,7 +1,7 @@
 /*
- * $Id: s_fzip.c,v 1.30 2018/12/27 14:35:30 slava Exp $
+ * $Id: s_fzip.c,v 1.31 2021/04/02 16:27:00 slava Exp $
  *
- * Copyright (C) 2001-2018 by Slava Monich
+ * Copyright (C) 2001-2021 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -60,7 +60,6 @@ typedef struct _Zip {
     z_stream * out;         /* zlib output context */
     I8u * inbuf;            /* input buffer */
     I8u * outbuf;           /* output buffer */
-    I32u  incrc;            /* crc32 of uncompressed data */
     I32u  outcrc;           /* crc32 of compressed data */
     int   compression;      /* compression level */
     int   zflags;           /* flags, see below */
@@ -353,7 +352,7 @@ STATIC int ZipRead(File * f, void * buf, int len)
         if (zerr == Z_STREAM_END) {
             inflateReset(zf->in);
             zf->zflags |= ZIP_IN_END;
-        } else  if (zerr != Z_OK) {
+        } else if (zerr != Z_OK) {
             zf->zflags |= ZIP_IN_ERR;
             break;
         }
@@ -376,7 +375,6 @@ STATIC int ZipRead(File * f, void * buf, int len)
         zf->zflags |= ZIP_EOF;
         return 0;
     } else {
-        zf->incrc = crc32(zf->incrc, (Bytef*)buf, len - zf->in->avail_out);
         return (len - zf->in->avail_out);
     }
 }
@@ -682,6 +680,9 @@ Bool FILE_ZipFinish(File * f)
  * HISTORY:
  *
  * $Log: s_fzip.c,v $
+ * Revision 1.31  2021/04/02 16:27:00  slava
+ * o removed input CRC field which was being calculated but never used
+ *
  * Revision 1.30  2018/12/27 14:35:30  slava
  * o avoid overflow of 'unsigned int' before conversion to size_t
  *
