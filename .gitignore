@@ -21,4 +21,5 @@ debian/files
 debian/libslava-dev.debhelper.log
 debian/libslava-dev.substvars
 debian/libslava-dev
+debian/.debhelper
 test/coverage/report
