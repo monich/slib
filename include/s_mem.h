@@ -1,7 +1,7 @@
 /*
- * $Id: s_mem.h,v 1.15 2015/08/16 16:07:29 slava Exp $
+ * $Id: s_mem.h,v 1.17 2021/04/06 17:26:07 slava Exp $
  *
- * Copyright (C) 2000-2013 by Slava Monich
+ * Copyright (C) 2000-2021 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -116,6 +116,7 @@ extern Bool  MEM_IsValidPointer P_((void * ptr));
 #define MEM_New(type)              ((type *)MEM_Alloc(sizeof(type)))
 #define MEM_New0(type)             ((type *)MEM_Alloc0(sizeof(type)))
 #define MEM_NewArray(type,n)       ((type *)MEM_AllocN(n,sizeof(type)))
+#define MEM_NewArray0(type,n)      ((type *)MEM_Alloc0(n*sizeof(type)))
 #define MEM_ReallocArray(p,type,n) ((type *)MEM_ReallocN(p,n,sizeof(type)))
 
 /*
@@ -136,6 +137,12 @@ extern Bool  MEM_IsValidPointer P_((void * ptr));
  * HISTORY:
  *
  * $Log: s_mem.h,v $
+ * Revision 1.17  2021/04/06 17:26:07  slava
+ * o fixed MEM_NewArray0 macro
+ *
+ * Revision 1.16  2021/04/06 17:20:39  slava
+ * o added MEM_NewArray0 macro
+ *
  * Revision 1.15  2015/08/16 16:07:29  slava
  * o housekeeping
  *
