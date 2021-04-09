@@ -1,10 +1,10 @@
 # -*- Mode: makefile-gmake -*-
 #
-# $Id: Makefile,v 1.90 2020/06/26 18:36:59 slava Exp $
+# $Id: Makefile,v 1.91 2021/04/09 16:39:05 slava Exp $
 #
 # Makefile for libslava.a
 #
-# Copyright (C) 2000-2020 by Slava Monich
+# Copyright (C) 2000-2021 by Slava Monich
 #
 # Redistribution and use in source and binary forms, with or without 
 # modification, are permitted provided that the following conditions 
@@ -48,7 +48,8 @@ RELEASE_FLAGS = -O2
 PROFILE_FLAGS = $(RELEASE_FLAGS) -pg
 COVERAGE_FLAGS = $(RELEASE_FLAGS) --coverage
 
-INCLUDES = -I./include -I./src -I../curl/include -I../expat/lib
+INCLUDE_DIR = ./include
+INCLUDES = -I$(INCLUDE_DIR) -I./src -I../curl/include -I../expat/lib
 DEFINES = -D_REENTRANT -D_HAVE_CURL -D_HAVE_EXPAT
 DEBUG_DEFINES = -DDEBUG=1 -DDEBUG_MEM
 
@@ -63,6 +64,19 @@ DEBUG_CFLAGS =  $(CFLAGS) $(CPPFLAGS) $(DEBUG_FLAGS) $(DEBUG_DEFINES)
 RELEASE_CFLAGS = $(CFLAGS) $(CPPFLAGS) $(RELEASE_FLAGS)
 PROFILE_CFLAGS = $(CFLAGS) $(CPPFLAGS) $(PROFILE_FLAGS)
 COVERAGE_CFLAGS = $(CFLAGS) $(CPPFLAGS) $(COVERAGE_FLAGS)
+
+#
+# Pull in version from s_ver.h file
+#
+
+VERSION_FILE = $(INCLUDE_DIR)/s_ver.h
+get_version = $(shell grep -E "^ *\\\#define +SLIB_VERSION_$1 +[0-9]+$$" $(VERSION_FILE) | sed "s/  */ /g" | cut -d " " -f 3)
+
+VERSION_MAJOR = $(call get_version,MAJOR)
+VERSION_MINOR = $(call get_version,MINOR)
+
+# Version for pkg-config
+PCVERSION = $(VERSION_MAJOR).$(VERSION_MINOR)
 
 #
 # Macros to quietly run commands
@@ -413,6 +427,9 @@ $(INSTALL_PKGCONFIG_DIR):
 
 #
 # $Log: Makefile,v $
+# Revision 1.91  2021/04/09 16:39:05  slava
+# o pull in pkgconfig version from s_ver.h
+#
 # Revision 1.90  2020/06/26 18:36:59  slava
 # o don't ignore pre-defined CFLAGS and CPPFLAGS
 #
