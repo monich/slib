@@ -4,6 +4,5 @@ includedir=/usr/include
 Name: slib
 Description: General purpose utility library
 Version: @version@
-Requires.private: expat libcurl
 Libs: -L${libdir} -lslava -lpthread -lm
 Cflags: -I${includedir}/slib
