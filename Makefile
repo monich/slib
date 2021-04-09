@@ -1,6 +1,6 @@
 # -*- Mode: makefile-gmake -*-
 #
-# $Id: Makefile,v 1.91 2021/04/09 16:39:05 slava Exp $
+# $Id: Makefile,v 1.92 2021/04/09 18:17:51 slava Exp $
 #
 # Makefile for libslava.a
 #
@@ -42,6 +42,19 @@ RELEASE_NAME = libslava
 PROFILE_NAME = libslavap
 COVERAGE_NAME = libslavac
 
+HAVE_CURL ?= 1
+HAVE_EXPAT ?= 1
+
+ifneq ($(HAVE_CURL),0)
+DEFINES += -D_HAVE_CURL
+PKGS += libcurl
+endif
+
+ifneq ($(HAVE_EXPAT),0)
+DEFINES += -D_HAVE_EXPAT
+PKGS += expat
+endif
+
 CC = $(CROSS_COMPILE)gcc
 DEBUG_FLAGS = -g -O0 -Wp,-U_FORTIFY_SOURCE
 RELEASE_FLAGS = -O2
@@ -49,14 +62,14 @@ PROFILE_FLAGS = $(RELEASE_FLAGS) -pg
 COVERAGE_FLAGS = $(RELEASE_FLAGS) --coverage
 
 INCLUDE_DIR = ./include
-INCLUDES = -I$(INCLUDE_DIR) -I./src -I../curl/include -I../expat/lib
-DEFINES = -D_REENTRANT -D_HAVE_CURL -D_HAVE_EXPAT
+INCLUDES = -I$(INCLUDE_DIR) -I./src
+DEFINES += -D_REENTRANT
 DEBUG_DEFINES = -DDEBUG=1 -DDEBUG_MEM
 
 WARNINGS = -Wall -Wstrict-prototypes -Wshadow -Wwrite-strings \
  -Waggregate-return -Wnested-externs
 
-CPPFLAGS += $(INCLUDES) $(DEFINES)
+CPPFLAGS += $(shell pkg-config --cflags $(PKGS)) $(INCLUDES) $(DEFINES)
 CFLAGS += $(WARNINGS) -fno-strict-aliasing -fPIC -MMD -MP
 ARFLAGS = rc
 
@@ -427,6 +440,9 @@ $(INSTALL_PKGCONFIG_DIR):
 
 #
 # $Log: Makefile,v $
+# Revision 1.92  2021/04/09 18:17:51  slava
+# o made it easier to build slib without libcurl and expat
+#
 # Revision 1.91  2021/04/09 16:39:05  slava
 # o pull in pkgconfig version from s_ver.h
 #
