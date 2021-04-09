@@ -1,7 +1,7 @@
 /*
- * $Id: s_ver.h,v 1.68 2017/10/28 22:50:31 slava Exp $
+ * $Id: s_ver.h,v 1.69 2021/04/09 18:26:11 slava Exp $
  *
- * Copyright (C) 2000-2017 by Slava Monich
+ * Copyright (C) 2000-2021 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,7 +44,7 @@
  * macro first appeared in SLIB release 1.18
  */
 #define SLIB_VERSION_MAJOR  1
-#define SLIB_VERSION_MINOR  82
+#define SLIB_VERSION_MINOR  84
 #define SLIB_VERSION SLIB_MAKE_VERSION(SLIB_VERSION_MAJOR,SLIB_VERSION_MINOR)
 
 /* SLIB version as a string */
@@ -60,6 +60,9 @@
  * HISTORY:
  *
  * $Log: s_ver.h,v $
+ * Revision 1.69  2021/04/09 18:26:11  slava
+ * o version 1.84
+ *
  * Revision 1.68  2017/10/28 22:50:31  slava
  * o version 1.82
  *
