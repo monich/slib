@@ -11,6 +11,8 @@ BuildRequires: zlib-devel
 BuildRequires: expat-devel
 BuildRequires: libcurl-devel
 
+%global debug_package %{nil}
+
 %description
 Provides slib headers and static library.
 
