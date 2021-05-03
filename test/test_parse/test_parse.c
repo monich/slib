@@ -1,7 +1,7 @@
 /*
- * $Id: test_parse.c,v 1.3 2020/01/11 18:21:35 slava Exp $
+ * $Id: test_parse.c,v 1.4 2021/05/03 00:47:06 slava Exp $
  *
- * Copyright (C) 2016-2020 by Slava Monich
+ * Copyright (C) 2016-2021 by Slava Monich
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -299,7 +299,7 @@ test_parse_u32(
         { T_(" ffffx"), 16, False },
         { T_("7fffffff"), 16, True, 0x7fffffff },
         { T_("ffffffff"), 16, True, 0xffffffff },
-        { T_("4294967295"), 10, True, 4294967295 },
+        { T_("4294967295"), 10, True, 4294967295u },
         { T_("ffffffffff"), 16, False },
         { T_("-1"), 10, False },
     };
